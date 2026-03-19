@@ -49,9 +49,11 @@ INVALID_DEFINITION_BAD_SYNONYM = {
 
 # ── Fixtures ───────────────────────────────────────────────────────────────────
 
+
 def _clear_singletons():
     from config import get_settings
     from db import reset_engine
+
     get_settings.cache_clear()
     reset_engine()
 
@@ -70,8 +72,10 @@ def isolated_env(tmp_path, monkeypatch):
 
 @pytest.fixture
 async def client():
-    from db import init_db
     from main import create_app
+
+    from db import init_db
+
     await init_db()
     app = create_app()
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as c:
@@ -79,6 +83,7 @@ async def client():
 
 
 # ── Create tests ───────────────────────────────────────────────────────────────
+
 
 async def test_create_valid_model_returns_201(client):
     response = await client.post(
@@ -110,6 +115,7 @@ async def test_create_model_with_bad_synonym_returns_422(client):
 
 
 # ── List / detail tests ────────────────────────────────────────────────────────
+
 
 async def test_list_returns_empty_initially(client):
     response = await client.get("/api/semantic_models")
@@ -157,6 +163,7 @@ async def test_get_not_found_returns_404(client):
 
 # ── Update tests ───────────────────────────────────────────────────────────────
 
+
 async def test_update_model_succeeds(client):
     created = await client.post(
         "/api/semantic_models",
@@ -189,6 +196,7 @@ async def test_update_with_invalid_definition_returns_422(client):
 
 # ── Validation endpoint tests ──────────────────────────────────────────────────
 
+
 async def test_validate_valid_definition_returns_valid_true(client):
     response = await client.post("/api/semantic_models/validate", json=VALID_DEFINITION)
     assert response.status_code == 200
@@ -207,6 +215,7 @@ async def test_validate_invalid_definition_returns_valid_false(client):
 
 # ── Delete tests ───────────────────────────────────────────────────────────────
 
+
 async def test_delete_model_returns_204(client):
     created = await client.post(
         "/api/semantic_models",
@@ -222,6 +231,7 @@ async def test_delete_model_returns_204(client):
 
 
 # ── YAML export tests ──────────────────────────────────────────────────────────
+
 
 async def test_export_yaml_returns_valid_yaml(client):
     created = await client.post(

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 
 @dataclass
@@ -22,9 +22,9 @@ class ParsedIntent:
 class TimeRange:
     """A resolved date range with a human-readable assumption note."""
 
-    start: str   # ISO date YYYY-MM-DD (inclusive)
-    end: str     # ISO date YYYY-MM-DD (exclusive)
-    label: str   # e.g. "last month"
+    start: str  # ISO date YYYY-MM-DD (inclusive)
+    end: str  # ISO date YYYY-MM-DD (exclusive)
+    label: str  # e.g. "last month"
     assumption: str  # e.g. "Interpreted 'last month' as 2026-02-01 to 2026-02-28"
 
 
@@ -32,12 +32,12 @@ class TimeRange:
 class TermMapping:
     """A single resolved business term."""
 
-    phrase: str           # what the user said (or the term name)
-    resolved_name: str    # canonical model name
-    resolved_type: str    # metric | dimension | entity
-    resolved_to: str      # metric:revenue | dimension:product_category
-    via: str              # exact | alias | synonym | default
-    confidence: float     # 0.0 to 1.0
+    phrase: str  # what the user said (or the term name)
+    resolved_name: str  # canonical model name
+    resolved_type: str  # metric | dimension | entity
+    resolved_to: str  # metric:revenue | dimension:product_category
+    via: str  # exact | alias | synonym | default
+    confidence: float  # 0.0 to 1.0
 
 
 @dataclass
@@ -67,7 +67,7 @@ class PipelineResult:
     semantic_mappings: list[dict]
     assumptions: list[str]
     caveats: list[str]
-    confidence: str       # high | medium | low | clarification_needed
+    confidence: str  # high | medium | low | clarification_needed
     confidence_note: str
     clarifying_question: str | None
     provenance: dict
@@ -80,7 +80,7 @@ class PipelineResult:
         question: str,
         clarifying_question: str,
         provenance: dict,
-    ) -> "PipelineResult":
+    ) -> PipelineResult:
         return cls(
             question=question,
             answer="",
@@ -101,13 +101,13 @@ class PipelineResult:
         )
 
     @classmethod
-    def error(
+    def error(  # noqa: F811
         cls,
         question: str,
         error: str,
         sql: str = "",
         provenance: dict | None = None,
-    ) -> "PipelineResult":
+    ) -> PipelineResult:
         return cls(
             question=question,
             answer="",
@@ -128,7 +128,7 @@ class PipelineResult:
         )
 
     @classmethod
-    def no_model(cls, dataset_name: str) -> "PipelineResult":
+    def no_model(cls, dataset_name: str) -> PipelineResult:
         return cls(
             question="",
             answer="",

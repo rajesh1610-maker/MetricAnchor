@@ -21,10 +21,12 @@ MINIMAL_CSV = (
 
 # ── Helpers ────────────────────────────────────────────────────────────────────
 
+
 def _clear_singletons():
     from config import get_settings
     from db import reset_engine
     from deps import get_query_engine
+
     get_settings.cache_clear()
     get_query_engine.cache_clear()
     reset_engine()
@@ -46,8 +48,9 @@ def isolated_env(tmp_path, monkeypatch):
 
 @pytest.fixture
 async def client():
-    from db import init_db
     from main import create_app
+
+    from db import init_db
 
     await init_db()  # ASGITransport skips lifespan, so we do this manually
     app = create_app()
@@ -66,8 +69,9 @@ async def tiny_limit_client(tmp_path, monkeypatch):
     monkeypatch.setenv("MAX_UPLOAD_BYTES", "10")
     _clear_singletons()
 
-    from db import init_db
     from main import create_app
+
+    from db import init_db
 
     await init_db()
     app = create_app()
@@ -78,6 +82,7 @@ async def tiny_limit_client(tmp_path, monkeypatch):
 
 
 # ── Upload tests ───────────────────────────────────────────────────────────────
+
 
 async def test_upload_csv_returns_201_with_profile(client):
     response = await client.post(
@@ -154,6 +159,7 @@ async def test_upload_oversized_file_returns_413(tiny_limit_client):
 
 # ── List / detail tests ────────────────────────────────────────────────────────
 
+
 async def test_list_datasets_initially_empty(client):
     response = await client.get("/api/datasets")
     assert response.status_code == 200
@@ -189,6 +195,7 @@ async def test_get_dataset_not_found_returns_404(client):
 
 
 # ── Sample rows tests ──────────────────────────────────────────────────────────
+
 
 async def test_get_rows_returns_columns_and_data(client):
     upload = await client.post(

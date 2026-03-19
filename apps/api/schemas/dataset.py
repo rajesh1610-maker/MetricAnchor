@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Any, Optional
+from typing import Any
 
 from pydantic import BaseModel, ConfigDict
 
@@ -17,8 +17,8 @@ class ColumnProfileSchema(BaseModel):
     is_numeric: bool
     is_date: bool
     is_bool: bool
-    min_value: Optional[str] = None
-    max_value: Optional[str] = None
+    min_value: str | None = None
+    max_value: str | None = None
     sample_values: list[str] = []
 
 
@@ -35,9 +35,9 @@ class DatasetResponse(BaseModel):
     name: str
     original_filename: str
     file_format: str
-    row_count: Optional[int] = None
-    column_count: Optional[int] = None
-    profile: Optional[DatasetProfileSchema] = None
+    row_count: int | None = None
+    column_count: int | None = None
+    profile: DatasetProfileSchema | None = None
     created_at: datetime
 
 

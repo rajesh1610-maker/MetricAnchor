@@ -4,9 +4,6 @@ from __future__ import annotations
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import PlainTextResponse
-from sqlalchemy.ext.asyncio import AsyncSession
-
-from db import get_session
 from schemas.semantic_model import (
     SemanticModelCreate,
     SemanticModelListResponse,
@@ -14,6 +11,9 @@ from schemas.semantic_model import (
     SemanticModelUpdate,
     ValidationResponse,
 )
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from db import get_session
 from services.semantic_model_service import SemanticModelService
 
 router = APIRouter(prefix="/semantic_models", tags=["semantic_models"])
@@ -55,7 +55,7 @@ async def create_semantic_model(
     try:
         return await svc.create(payload)
     except ValueError as e:
-        raise HTTPException(status_code=422, detail=str(e))
+        raise HTTPException(status_code=422, detail=str(e)) from None
 
 
 @router.get(
@@ -86,7 +86,7 @@ async def update_semantic_model(
     try:
         model = await svc.update(model_id, payload)
     except ValueError as e:
-        raise HTTPException(status_code=422, detail=str(e))
+        raise HTTPException(status_code=422, detail=str(e)) from None
 
     if model is None:
         raise HTTPException(status_code=404, detail=f"Semantic model '{model_id}' not found.")

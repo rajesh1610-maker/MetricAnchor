@@ -21,7 +21,6 @@ import json
 import os
 import sys
 from pathlib import Path
-from typing import Optional
 
 import httpx
 import typer
@@ -30,7 +29,6 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.syntax import Syntax
 from rich.table import Table
-from rich.text import Text
 
 # ── App / console ──────────────────────────────────────────────────────────────
 
@@ -49,6 +47,7 @@ err = Console(stderr=True, style="bold red")
 # ── Config ─────────────────────────────────────────────────────────────────────
 
 DEFAULT_API_URL = "http://localhost:8000"
+
 
 def _api_url() -> str:
     return os.getenv("METRICANCHOR_API_URL", DEFAULT_API_URL).rstrip("/")
@@ -71,15 +70,18 @@ def _check_api(client: httpx.Client) -> None:
             f"Cannot reach API at {_api_url()}\n"
             "Run 'make up' to start the stack, or set METRICANCHOR_API_URL."
         )
-        raise typer.Exit(1)
+        raise typer.Exit(1) from None
 
 
 # ── ingest ─────────────────────────────────────────────────────────────────────
 
+
 @app.command()
 def ingest(
     file: Path = typer.Argument(..., help="CSV or Parquet file to upload", exists=True),
-    show_profile: bool = typer.Option(True, "--profile/--no-profile", help="Print column profile after upload"),
+    show_profile: bool = typer.Option(
+        True, "--profile/--no-profile", help="Print column profile after upload"
+    ),
 ):
     """Upload a CSV or Parquet file and register it as a dataset."""
     with _client() as client:
@@ -88,7 +90,13 @@ def ingest(
         with open(file, "rb") as fh:
             r = client.post(
                 "/api/datasets",
-                files={"file": (file.name, fh, "text/csv" if file.suffix == ".csv" else "application/octet-stream")},
+                files={
+                    "file": (
+                        file.name,
+                        fh,
+                        "text/csv" if file.suffix == ".csv" else "application/octet-stream",
+                    )
+                },
                 timeout=120.0,
             )
         if r.status_code not in (200, 201):
@@ -116,6 +124,7 @@ def ingest(
 
 # ── profile ────────────────────────────────────────────────────────────────────
 
+
 @app.command()
 def profile(
     dataset_id: str = typer.Argument(..., help="Dataset ID to profile"),
@@ -131,7 +140,9 @@ def profile(
         ds = r.json()
 
     console.print(f"[bold]{ds['name']}[/bold]  [dim]({ds['id']})[/dim]")
-    console.print(f"  {ds.get('row_count', '?'):,} rows · {ds.get('column_count', '?')} columns · {ds.get('file_format', '?').upper()}\n")
+    console.print(
+        f"  {ds.get('row_count', '?'):,} rows · {ds.get('column_count', '?')} columns · {ds.get('file_format', '?').upper()}\n"
+    )
 
     if ds.get("profile"):
         _print_profile(ds["profile"])
@@ -141,7 +152,13 @@ def profile(
 
 def _print_profile(profile: dict) -> None:
     t = Table(
-        "Column", "Type", "Null%", "Distinct", "Min", "Max", "Samples",
+        "Column",
+        "Type",
+        "Null%",
+        "Distinct",
+        "Min",
+        "Max",
+        "Samples",
         box=box.SIMPLE_HEAD,
         header_style="bold cyan",
     )
@@ -167,10 +184,13 @@ def _print_profile(profile: dict) -> None:
 
 # ── model ──────────────────────────────────────────────────────────────────────
 
+
 @model_app.command("init")
 def model_init(
     dataset_id: str = typer.Argument(..., help="Dataset ID to scaffold a model for"),
-    output: Optional[Path] = typer.Option(None, "--output", "-o", help="Write YAML to this file (default: print to stdout)"),
+    output: Path | None = typer.Option(
+        None, "--output", "-o", help="Write YAML to this file (default: print to stdout)"
+    ),
 ):
     """
     Scaffold a semantic model YAML from a dataset's column profile.
@@ -192,7 +212,7 @@ def model_init(
     if output:
         output.write_text(yaml_text)
         console.print(f"Wrote scaffold to [bold]{output}[/bold]")
-        console.print(f"\nNext: edit the file, then upload with:")
+        console.print("\nNext: edit the file, then upload with:")
         console.print(f"  python -m cli.main model create {dataset_id} {output}")
     else:
         console.print(Syntax(yaml_text, "yaml", theme="monokai", line_numbers=False))
@@ -205,6 +225,7 @@ def model_create(
 ):
     """Upload a semantic model YAML file to the API."""
     import yaml as pyyaml
+
     with open(yaml_file) as f:
         definition = pyyaml.safe_load(f)
 
@@ -212,7 +233,11 @@ def model_create(
         _check_api(client)
         r = client.post(
             "/api/semantic_models",
-            json={"dataset_id": dataset_id, "name": definition.get("name", "model"), "definition": definition},
+            json={
+                "dataset_id": dataset_id,
+                "name": definition.get("name", "model"),
+                "definition": definition,
+            },
         )
         if r.status_code == 422:
             err.print("Validation failed:")
@@ -227,7 +252,7 @@ def model_create(
         model = r.json()
 
     console.print(f"[green]Semantic model created[/green]  id=[bold]{model['id']}[/bold]")
-    console.print(f"\nNext: python -m cli.main ask {dataset_id} \"your question\"")
+    console.print(f'\nNext: python -m cli.main ask {dataset_id} "your question"')
 
 
 @model_app.command("list")
@@ -246,7 +271,15 @@ def model_list(
         console.print(f"Create one with: python -m cli.main model init {dataset_id}")
         return
 
-    t = Table("ID", "Name", "Metrics", "Dimensions", "Created", box=box.SIMPLE_HEAD, header_style="bold cyan")
+    t = Table(
+        "ID",
+        "Name",
+        "Metrics",
+        "Dimensions",
+        "Created",
+        box=box.SIMPLE_HEAD,
+        header_style="bold cyan",
+    )
     for m in models:
         defn = m.get("definition", {})
         t.add_row(
@@ -265,6 +298,7 @@ def model_validate(
 ):
     """Validate a local semantic model YAML file (no upload)."""
     import yaml as pyyaml
+
     with open(yaml_file) as f:
         definition = pyyaml.safe_load(f)
 
@@ -303,43 +337,82 @@ def _scaffold_model(ds: dict) -> str:
     for col in columns:
         col_name = col["name"]
         if col.get("is_date"):
-            dimensions.append({"name": col_name, "column": col_name, "description": f"Date: {col_name}", "aliases": [], "is_date": True})
+            dimensions.append(
+                {
+                    "name": col_name,
+                    "column": col_name,
+                    "description": f"Date: {col_name}",
+                    "aliases": [],
+                    "is_date": True,
+                }
+            )
             if time_col is None:
                 time_col = col_name
         elif col.get("is_numeric"):
-            metrics.append({
-                "name": col_name,
-                "description": f"TODO: describe {col_name}",
-                "expression": f"SUM({col_name})",
-                "aliases": [],
-                "format": "number",
-            })
+            metrics.append(
+                {
+                    "name": col_name,
+                    "description": f"TODO: describe {col_name}",
+                    "expression": f"SUM({col_name})",
+                    "aliases": [],
+                    "format": "number",
+                }
+            )
         elif col.get("is_bool"):
-            dimensions.append({"name": col_name, "column": col_name, "description": f"Boolean flag: {col_name}", "aliases": []})
+            dimensions.append(
+                {
+                    "name": col_name,
+                    "column": col_name,
+                    "description": f"Boolean flag: {col_name}",
+                    "aliases": [],
+                }
+            )
         else:
-            dimensions.append({"name": col_name, "column": col_name, "description": f"TODO: describe {col_name}", "aliases": []})
+            dimensions.append(
+                {
+                    "name": col_name,
+                    "column": col_name,
+                    "description": f"TODO: describe {col_name}",
+                    "aliases": [],
+                }
+            )
 
     model: dict = {
         "name": name,
         "dataset": name,
         "description": f"TODO: describe the {name} dataset",
         "grain": "TODO: one row per ...",
-        "metrics": metrics or [{"name": "row_count", "description": "Number of rows", "expression": "COUNT(*)", "aliases": ["count", "total"], "format": "number"}],
+        "metrics": metrics
+        or [
+            {
+                "name": "row_count",
+                "description": "Number of rows",
+                "expression": "COUNT(*)",
+                "aliases": ["count", "total"],
+                "format": "number",
+            }
+        ],
         "dimensions": dimensions,
     }
     if time_col:
         model["time_column"] = time_col
 
-    return "# Auto-generated by: metricanchor model init\n# Edit descriptions, aliases, and synonyms before using.\n\n" + pyyaml.dump(model, default_flow_style=False, sort_keys=False, allow_unicode=True)
+    return (
+        "# Auto-generated by: metricanchor model init\n# Edit descriptions, aliases, and synonyms before using.\n\n"
+        + pyyaml.dump(model, default_flow_style=False, sort_keys=False, allow_unicode=True)
+    )
 
 
 # ── ask ────────────────────────────────────────────────────────────────────────
+
 
 @app.command()
 def ask(
     dataset_id: str = typer.Argument(..., help="Dataset ID to query"),
     question: str = typer.Argument(..., help="Natural language question"),
-    model_id: Optional[str] = typer.Option(None, "--model", "-m", help="Semantic model ID (uses latest if omitted)"),
+    model_id: str | None = typer.Option(
+        None, "--model", "-m", help="Semantic model ID (uses latest if omitted)"
+    ),
     show_sql: bool = typer.Option(True, "--sql/--no-sql", help="Print generated SQL"),
     show_provenance: bool = typer.Option(False, "--provenance", help="Print full provenance trace"),
     json_output: bool = typer.Option(False, "--json", help="Output raw JSON"),
@@ -372,25 +445,31 @@ def _print_answer(result: dict, show_sql: bool, show_provenance: bool) -> None:
 
     # Error
     if result.get("error"):
-        console.print(Panel(
-            f"[red]{result['error']}[/red]",
-            title="[bold red]Pipeline Error[/bold red]",
-            border_style="red",
-        ))
+        console.print(
+            Panel(
+                f"[red]{result['error']}[/red]",
+                title="[bold red]Pipeline Error[/bold red]",
+                border_style="red",
+            )
+        )
         return
 
     # Clarification
     if result.get("clarifying_question"):
-        console.print(Panel(
-            result["clarifying_question"],
-            title="[yellow]Clarification Needed[/yellow]",
-            border_style="yellow",
-        ))
+        console.print(
+            Panel(
+                result["clarifying_question"],
+                title="[yellow]Clarification Needed[/yellow]",
+                border_style="yellow",
+            )
+        )
         return
 
     # Answer
     if result.get("answer"):
-        console.print(Panel(result["answer"], title="[bold green]Answer[/bold green]", border_style="green"))
+        console.print(
+            Panel(result["answer"], title="[bold green]Answer[/bold green]", border_style="green")
+        )
 
     # Result table (first 20 rows)
     rows = result.get("rows", [])
@@ -433,9 +512,19 @@ def _print_answer(result: dict, show_sql: bool, show_provenance: bool) -> None:
     mappings = result.get("semantic_mappings", [])
     if mappings:
         console.print()
-        t2 = Table("Phrase", "Resolved to", "Via", "Type", box=box.SIMPLE, show_header=True, header_style="dim")
+        t2 = Table(
+            "Phrase",
+            "Resolved to",
+            "Via",
+            "Type",
+            box=box.SIMPLE,
+            show_header=True,
+            header_style="dim",
+        )
         for m in mappings:
-            t2.add_row(m.get("phrase", ""), m.get("resolved_to", ""), m.get("via", ""), m.get("type", ""))
+            t2.add_row(
+                m.get("phrase", ""), m.get("resolved_to", ""), m.get("via", ""), m.get("type", "")
+            )
         console.print(t2)
 
     # Provenance
@@ -452,8 +541,12 @@ app.add_typer(eval_app, name="eval")
 
 @eval_app.command("run")
 def eval_run(
-    dataset: Optional[str] = typer.Option(None, "--dataset", "-d", help="Run only cases for this dataset"),
-    output: Optional[Path] = typer.Option(None, "--output", "-o", help="Write JSON report to this file"),
+    dataset: str | None = typer.Option(
+        None, "--dataset", "-d", help="Run only cases for this dataset"
+    ),
+    output: Path | None = typer.Option(
+        None, "--output", "-o", help="Write JSON report to this file"
+    ),
 ):
     """
     Run the offline eval suite against the sample CSVs.
@@ -466,8 +559,8 @@ def eval_run(
     root = Path(__file__).resolve().parents[1]
     sys.path.insert(0, str(root))
 
-    from evals.runner import run_evals
     from evals.report import print_report, write_report
+    from evals.runner import run_evals
 
     console.print("[dim]Running eval suite …[/dim]")
     results = asyncio.run(run_evals(filter_dataset=dataset))
@@ -484,6 +577,7 @@ def eval_run(
 
 # ── datasets ───────────────────────────────────────────────────────────────────
 
+
 @app.command("datasets")
 def list_datasets():
     """List all uploaded datasets."""
@@ -498,7 +592,16 @@ def list_datasets():
         console.print("Upload one with: python -m cli.main ingest <file.csv>")
         return
 
-    t = Table("ID", "Name", "Rows", "Cols", "Format", "Created", box=box.SIMPLE_HEAD, header_style="bold cyan")
+    t = Table(
+        "ID",
+        "Name",
+        "Rows",
+        "Cols",
+        "Format",
+        "Created",
+        box=box.SIMPLE_HEAD,
+        header_style="bold cyan",
+    )
     for ds in ds_list:
         t.add_row(
             ds["id"][:8] + "…",
@@ -513,6 +616,7 @@ def list_datasets():
 
 # ── status ─────────────────────────────────────────────────────────────────────
 
+
 @app.command()
 def status():
     """Check API health and print configuration."""
@@ -523,18 +627,20 @@ def status():
             h = r.json()
         except Exception as e:
             err.print(f"API unreachable at {_api_url()}: {e}")
-            raise typer.Exit(1)
+            raise typer.Exit(1) from None
 
-    console.print(Panel(
-        f"[green]●[/green] API is up\n"
-        f"  URL:     {_api_url()}\n"
-        f"  Version: {h.get('version', '?')}\n"
-        f"  LLM:     {h.get('llm_provider', '?')} / {h.get('llm_model', '?')}\n"
-        f"  Mode:    {'[green]live[/green]' if h.get('llm_live') else '[yellow]stub[/yellow]'}\n"
-        f"  Time:    {h.get('timestamp', '?')}",
-        title="[bold]MetricAnchor Status[/bold]",
-        border_style="green",
-    ))
+    console.print(
+        Panel(
+            f"[green]●[/green] API is up\n"
+            f"  URL:     {_api_url()}\n"
+            f"  Version: {h.get('version', '?')}\n"
+            f"  LLM:     {h.get('llm_provider', '?')} / {h.get('llm_model', '?')}\n"
+            f"  Mode:    {'[green]live[/green]' if h.get('llm_live') else '[yellow]stub[/yellow]'}\n"
+            f"  Time:    {h.get('timestamp', '?')}",
+            title="[bold]MetricAnchor Status[/bold]",
+            border_style="green",
+        )
+    )
 
 
 # ── Entry point ────────────────────────────────────────────────────────────────

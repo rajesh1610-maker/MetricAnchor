@@ -127,7 +127,7 @@ export default function QuestionResult({ result, devMode = false }: QuestionResu
                     : "border-transparent text-gray-500 hover:text-gray-300"
                 }`}
                 disabled={isEmpty}
-                aria-selected={activeTab === id}
+                aria-current={activeTab === id ? "true" : undefined}
               >
                 {label}
               </button>

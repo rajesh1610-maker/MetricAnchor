@@ -1,0 +1,20 @@
+target-version = "py312"
+line-length = 100
+
+[lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+ignore = [
+    "E501",   # line length handled by formatter
+    "B008",   # FastAPI uses Depends() / File() / Query() in default args by design
+]
+
+[lint.isort]
+known-first-party = ["config", "db", "deps", "models", "routers", "services", "packages"]
+
+[lint.per-file-ignores]
+"apps/api/deps.py" = ["E402"]
+"apps/api/services/ingest.py" = ["E402"]
+"apps/api/services/question_service.py" = ["E402"]
+"apps/api/services/semantic_model_service.py" = ["E402"]
+"tests/*" = ["E402"]
+"evals/*" = ["E402"]

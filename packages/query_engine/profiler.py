@@ -7,12 +7,9 @@ and sample values for categorical columns.
 
 from __future__ import annotations
 
-import re
 from dataclasses import dataclass, field
-from typing import Any
 
 import duckdb
-
 
 # DuckDB type name fragments → category
 _NUMERIC = {"INT", "FLOAT", "DOUBLE", "DECIMAL", "NUMERIC", "REAL", "HUGEINT", "UBIGINT"}
@@ -95,8 +92,7 @@ def profile_dataset(conn: duckdb.DuckDBPyConnection, view_name: str) -> DatasetP
 
         # Sample values: up to 5 distinct non-null values
         sample_rows = conn.execute(
-            f"SELECT DISTINCT {safe_col} FROM {safe_view} "
-            f"WHERE {safe_col} IS NOT NULL LIMIT 5"
+            f"SELECT DISTINCT {safe_col} FROM {safe_view} " f"WHERE {safe_col} IS NOT NULL LIMIT 5"
         ).fetchall()
         sample_values = [str(r[0]) for r in sample_rows]
 

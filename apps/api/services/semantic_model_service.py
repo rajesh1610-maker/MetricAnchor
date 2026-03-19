@@ -16,16 +16,15 @@ _repo_root = _svc_dir.parents[2] if len(_svc_dir.parents) > 2 else _svc_dir.pare
 if str(_repo_root) not in sys.path:
     sys.path.insert(0, str(_repo_root))
 
-from packages.semantic_model import SemanticModelValidator
-
-from models import SemanticModel
 from schemas.semantic_model import (
     SemanticModelCreate,
-    SemanticModelListResponse,
     SemanticModelResponse,
     SemanticModelUpdate,
     ValidationResponse,
 )
+
+from models import SemanticModel
+from packages.semantic_model import SemanticModelValidator
 
 _validator = SemanticModelValidator()
 
@@ -59,9 +58,7 @@ class SemanticModelService:
         return [_to_response(m) for m in result.scalars().all()]
 
     async def get(self, model_id: str) -> SemanticModelResponse | None:
-        result = await self._db.execute(
-            select(SemanticModel).where(SemanticModel.id == model_id)
-        )
+        result = await self._db.execute(select(SemanticModel).where(SemanticModel.id == model_id))
         m = result.scalar_one_or_none()
         return _to_response(m) if m else None
 
@@ -79,9 +76,7 @@ class SemanticModelService:
     async def update(
         self, model_id: str, payload: SemanticModelUpdate
     ) -> SemanticModelResponse | None:
-        result = await self._db.execute(
-            select(SemanticModel).where(SemanticModel.id == model_id)
-        )
+        result = await self._db.execute(select(SemanticModel).where(SemanticModel.id == model_id))
         model = result.scalar_one_or_none()
         if model is None:
             return None
@@ -97,9 +92,7 @@ class SemanticModelService:
         return _to_response(model)
 
     async def delete(self, model_id: str) -> bool:
-        result = await self._db.execute(
-            select(SemanticModel).where(SemanticModel.id == model_id)
-        )
+        result = await self._db.execute(select(SemanticModel).where(SemanticModel.id == model_id))
         model = result.scalar_one_or_none()
         if model is None:
             return False
@@ -123,7 +116,9 @@ class SemanticModelService:
         response = await self.get(model_id)
         if response is None:
             return None
-        return yaml.dump(response.definition, default_flow_style=False, allow_unicode=True, sort_keys=False)
+        return yaml.dump(
+            response.definition, default_flow_style=False, allow_unicode=True, sort_keys=False
+        )
 
 
 def _to_response(m: SemanticModel) -> SemanticModelResponse:

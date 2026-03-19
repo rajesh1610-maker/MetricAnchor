@@ -61,6 +61,7 @@ ORDERS_MODEL = {
 def _clear_singletons():
     from config import get_settings
     from db import reset_engine
+
     get_settings.cache_clear()
     reset_engine()
 
@@ -79,8 +80,10 @@ def isolated_env(tmp_path, monkeypatch):
 
 @pytest.fixture
 async def client():
-    from db import init_db
     from main import create_app
+
+    from db import init_db
+
     await init_db()
     app = create_app()
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as c:
@@ -88,6 +91,7 @@ async def client():
 
 
 # ── Helpers ────────────────────────────────────────────────────────────────────
+
 
 async def _setup_dataset_and_model(client: AsyncClient) -> tuple[str, str]:
     """Upload ORDERS_CSV and create ORDERS_MODEL. Returns (dataset_id, model_id)."""
@@ -113,6 +117,7 @@ async def _setup_dataset_and_model(client: AsyncClient) -> tuple[str, str]:
 
 
 # ── Basic pipeline tests ───────────────────────────────────────────────────────
+
 
 async def test_ask_question_returns_201_with_trust_fields(client):
     dataset_id, _ = await _setup_dataset_and_model(client)
@@ -226,6 +231,7 @@ async def test_ask_question_without_semantic_model_returns_error(client):
 
 async def test_ask_question_with_invalid_dataset_returns_422(client):
     from db import init_db
+
     await init_db()
 
     response = await client.post(
@@ -270,6 +276,7 @@ async def test_provenance_contains_pipeline_steps(client):
 
 
 # ── History / persistence tests ────────────────────────────────────────────────
+
 
 async def test_list_questions_returns_asked_questions(client):
     dataset_id, _ = await _setup_dataset_and_model(client)
@@ -328,6 +335,7 @@ async def test_get_question_not_found_returns_404(client):
 
 
 # ── Feedback tests ─────────────────────────────────────────────────────────────
+
 
 async def test_submit_feedback_returns_201(client):
     dataset_id, _ = await _setup_dataset_and_model(client)

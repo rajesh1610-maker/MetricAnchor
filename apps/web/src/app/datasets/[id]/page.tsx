@@ -206,7 +206,7 @@ export default function DatasetDetailPage() {
                 No semantic model defined for this dataset yet.
               </p>
               <p className="text-xs text-gray-600 mb-6 max-w-sm mx-auto leading-relaxed">
-                A semantic model maps your column names to business terms like "revenue" and "churn",
+                A semantic model maps your column names to business terms like &quot;revenue&quot; and &quot;churn&quot;,
                 so the AI can answer questions accurately.
               </p>
               <Link

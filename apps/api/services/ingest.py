@@ -17,11 +17,11 @@ _repo_root = _svc_dir.parents[2] if len(_svc_dir.parents) > 2 else _svc_dir.pare
 if str(_repo_root) not in sys.path:
     sys.path.insert(0, str(_repo_root))
 
-from packages.query_engine import QueryEngine, sanitize_view_name
+from schemas.dataset import ColumnProfileSchema, DatasetProfileSchema, DatasetResponse
 
 from config import get_settings
 from models import Dataset
-from schemas.dataset import ColumnProfileSchema, DatasetProfileSchema, DatasetResponse
+from packages.query_engine import QueryEngine, sanitize_view_name
 
 _ALLOWED_EXTENSIONS = {".csv", ".parquet"}
 
@@ -53,9 +53,7 @@ class IngestService:
         contents = await file.read()
         if len(contents) > settings.max_upload_bytes:
             mb = settings.max_upload_bytes // 1_048_576
-            raise UploadValidationError(
-                f"File exceeds the {mb} MB upload limit.", status_code=413
-            )
+            raise UploadValidationError(f"File exceeds the {mb} MB upload limit.", status_code=413)
 
         # ── 3. Save to disk ─────────────────────────────────────────────────
         dataset_id = str(uuid.uuid4())
@@ -112,24 +110,18 @@ class IngestService:
         return _to_response(dataset)
 
     async def list_datasets(self) -> list[DatasetResponse]:
-        result = await self._db.execute(
-            select(Dataset).order_by(Dataset.created_at.desc())
-        )
+        result = await self._db.execute(select(Dataset).order_by(Dataset.created_at.desc()))
         return [_to_response(d) for d in result.scalars().all()]
 
     async def get_dataset(self, dataset_id: str) -> DatasetResponse | None:
-        result = await self._db.execute(
-            select(Dataset).where(Dataset.id == dataset_id)
-        )
+        result = await self._db.execute(select(Dataset).where(Dataset.id == dataset_id))
         dataset = result.scalar_one_or_none()
         return _to_response(dataset) if dataset else None
 
     async def get_rows(
         self, dataset_id: str, limit: int = 100, offset: int = 0
     ) -> tuple[list[str], list[list]] | None:
-        result = await self._db.execute(
-            select(Dataset).where(Dataset.id == dataset_id)
-        )
+        result = await self._db.execute(select(Dataset).where(Dataset.id == dataset_id))
         dataset = result.scalar_one_or_none()
         if dataset is None:
             return None

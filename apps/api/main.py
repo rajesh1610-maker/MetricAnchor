@@ -10,11 +10,11 @@ from pathlib import Path
 
 from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
+from logging_config import configure_logging
 
 from config import get_settings
 from db import get_session, init_db
 from deps import get_query_engine
-from logging_config import configure_logging
 from routers import datasets, health, questions, semantic_models
 from services.ingest import IngestService
 

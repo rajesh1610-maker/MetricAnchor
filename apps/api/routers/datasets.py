@@ -3,12 +3,12 @@
 from __future__ import annotations
 
 from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile
+from schemas.dataset import DatasetListResponse, DatasetResponse, RowsResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from db import get_session
 from deps import get_query_engine
 from packages.query_engine import QueryEngine
-from schemas.dataset import DatasetListResponse, DatasetResponse, RowsResponse
 from services.ingest import IngestService, UploadValidationError
 
 router = APIRouter(prefix="/datasets", tags=["datasets"])
@@ -41,7 +41,7 @@ async def upload_dataset(
     try:
         return await svc.upload(file)
     except UploadValidationError as exc:
-        raise HTTPException(status_code=exc.status_code, detail=exc.message)
+        raise HTTPException(status_code=exc.status_code, detail=exc.message) from None
 
 
 @router.get(

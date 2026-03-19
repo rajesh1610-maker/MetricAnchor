@@ -8,6 +8,7 @@ def _clear_singletons():
     from config import get_settings
     from db import reset_engine
     from deps import get_query_engine
+
     get_settings.cache_clear()
     get_query_engine.cache_clear()
     reset_engine()
@@ -27,8 +28,10 @@ def isolated_env(tmp_path, monkeypatch):
 
 @pytest.fixture
 async def client():
-    from db import init_db
     from main import create_app
+
+    from db import init_db
+
     await init_db()
     app = create_app()
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as c:

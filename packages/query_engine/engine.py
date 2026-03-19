@@ -38,9 +38,7 @@ class QueryEngine:
         with self._lock:
             conn = self._connect()
             safe_view = f'"{view_name}"'
-            conn.execute(
-                f"CREATE OR REPLACE VIEW {safe_view} AS SELECT * FROM '{file_path}'"
-            )
+            conn.execute(f"CREATE OR REPLACE VIEW {safe_view} AS SELECT * FROM '{file_path}'")
             return profile_dataset(conn, view_name)
 
     def _run_sync(self, sql: str) -> tuple[list[str], list[list]]:
@@ -63,9 +61,7 @@ class QueryEngine:
         with self._lock:
             conn = self._connect()
             safe_view = f'"{view_name}"'
-            conn.execute(
-                f"CREATE OR REPLACE VIEW {safe_view} AS SELECT * FROM '{file_path}'"
-            )
+            conn.execute(f"CREATE OR REPLACE VIEW {safe_view} AS SELECT * FROM '{file_path}'")
 
     # ── Public async API ──────────────────────────────────────────────────────
 
@@ -89,6 +85,7 @@ class QueryEngine:
 
 
 # ── Name sanitisation helper ──────────────────────────────────────────────────
+
 
 def sanitize_view_name(filename: str) -> str:
     """Turn a filename into a valid, lowercase DuckDB view name."""

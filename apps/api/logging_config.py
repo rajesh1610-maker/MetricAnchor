@@ -21,10 +21,7 @@ from __future__ import annotations
 import json
 import logging
 import sys
-import time
 from typing import Literal
-
-from config import get_settings
 
 
 class _JsonFormatter(logging.Formatter):
@@ -42,10 +39,27 @@ class _JsonFormatter(logging.Formatter):
         # Merge any extra fields attached via logger.info("…", extra={…})
         for key, val in record.__dict__.items():
             if key not in {
-                "name", "msg", "args", "levelname", "levelno", "pathname",
-                "filename", "module", "exc_info", "exc_text", "stack_info",
-                "lineno", "funcName", "created", "msecs", "relativeCreated",
-                "thread", "threadName", "processName", "process", "message",
+                "name",
+                "msg",
+                "args",
+                "levelname",
+                "levelno",
+                "pathname",
+                "filename",
+                "module",
+                "exc_info",
+                "exc_text",
+                "stack_info",
+                "lineno",
+                "funcName",
+                "created",
+                "msecs",
+                "relativeCreated",
+                "thread",
+                "threadName",
+                "processName",
+                "process",
+                "message",
                 "taskName",
             }:
                 try:
@@ -89,11 +103,7 @@ def configure_logging(
     effective_level = (level or os.getenv("LOG_LEVEL", "INFO")).upper()
     effective_fmt = fmt or os.getenv("LOG_FORMAT", "human")
 
-    formatter: logging.Formatter
-    if effective_fmt == "json":
-        formatter = _JsonFormatter()
-    else:
-        formatter = _HumanFormatter()
+    formatter = _JsonFormatter() if effective_fmt == "json" else _HumanFormatter()
 
     handler = logging.StreamHandler(sys.stdout)
     handler.setFormatter(formatter)

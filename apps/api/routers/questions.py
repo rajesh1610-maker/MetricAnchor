@@ -3,11 +3,6 @@
 from __future__ import annotations
 
 from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy.ext.asyncio import AsyncSession
-
-from db import get_session
-from deps import get_query_engine
-from packages.query_engine import QueryEngine
 from schemas.question import (
     FeedbackCreate,
     FeedbackResponse,
@@ -15,6 +10,11 @@ from schemas.question import (
     QuestionListResponse,
     QuestionResponse,
 )
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from db import get_session
+from deps import get_query_engine
+from packages.query_engine import QueryEngine
 from services.question_service import QuestionService
 
 router = APIRouter(prefix="/questions", tags=["questions"])
@@ -52,7 +52,7 @@ async def ask_question(
     try:
         return await svc.ask(payload)
     except ValueError as e:
-        raise HTTPException(status_code=422, detail=str(e))
+        raise HTTPException(status_code=422, detail=str(e)) from None
 
 
 @router.get(

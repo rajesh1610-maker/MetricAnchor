@@ -16,11 +16,6 @@ _repo_root = _svc_dir.parents[2] if len(_svc_dir.parents) > 2 else _svc_dir.pare
 if str(_repo_root) not in sys.path:
     sys.path.insert(0, str(_repo_root))
 
-from packages.llm_adapter import LLMAdapter
-from packages.query_engine import QueryEngine, execute_pipeline
-
-from config import get_settings
-from models import Dataset, Feedback, Question, SemanticModel
 from schemas.question import (
     FeedbackCreate,
     FeedbackResponse,
@@ -28,6 +23,11 @@ from schemas.question import (
     QuestionListResponse,
     QuestionResponse,
 )
+
+from config import get_settings
+from models import Dataset, Feedback, Question, SemanticModel
+from packages.llm_adapter import LLMAdapter
+from packages.query_engine import QueryEngine, execute_pipeline
 
 
 class QuestionService:
@@ -121,6 +121,7 @@ class QuestionService:
 
         # Total count
         from sqlalchemy import func  # noqa: PLC0415
+
         count_stmt = select(func.count()).select_from(Question)
         if dataset_id:
             count_stmt = count_stmt.where(Question.dataset_id == dataset_id)
@@ -132,9 +133,7 @@ class QuestionService:
         )
 
     async def get(self, question_id: str) -> QuestionResponse | None:
-        result = await self._db.execute(
-            select(Question).where(Question.id == question_id)
-        )
+        result = await self._db.execute(select(Question).where(Question.id == question_id))
         q = result.scalar_one_or_none()
         return _to_response(q) if q else None
 
@@ -144,9 +143,7 @@ class QuestionService:
         self, question_id: str, payload: FeedbackCreate
     ) -> FeedbackResponse | None:
         # Verify question exists
-        result = await self._db.execute(
-            select(Question).where(Question.id == question_id)
-        )
+        result = await self._db.execute(select(Question).where(Question.id == question_id))
         if result.scalar_one_or_none() is None:
             return None
 
@@ -169,14 +166,10 @@ class QuestionService:
     # ── Helpers ────────────────────────────────────────────────────────────────
 
     async def _load_dataset(self, dataset_id: str) -> Dataset | None:
-        result = await self._db.execute(
-            select(Dataset).where(Dataset.id == dataset_id)
-        )
+        result = await self._db.execute(select(Dataset).where(Dataset.id == dataset_id))
         return result.scalar_one_or_none()
 
-    async def _load_model(
-        self, dataset_id: str, model_id: str | None
-    ) -> SemanticModel | None:
+    async def _load_model(self, dataset_id: str, model_id: str | None) -> SemanticModel | None:
         if model_id:
             result = await self._db.execute(
                 select(SemanticModel).where(SemanticModel.id == model_id)

@@ -99,9 +99,7 @@ class SemanticModelValidator:
 
         overlap = set(metric_names) & set(dimension_names)
         if overlap:
-            errors.append(
-                f"Names appear in both metrics and dimensions: {', '.join(overlap)}"
-            )
+            errors.append(f"Names appear in both metrics and dimensions: {', '.join(overlap)}")
 
         return errors
 
@@ -116,9 +114,7 @@ class SemanticModelValidator:
             if maps_to.startswith("metric:"):
                 target = maps_to[7:]
                 if target not in metric_names:
-                    errors.append(
-                        f"Synonym '{syn['phrase']}' maps to unknown metric '{target}'."
-                    )
+                    errors.append(f"Synonym '{syn['phrase']}' maps to unknown metric '{target}'.")
             elif maps_to.startswith("dimension:"):
                 target = maps_to[10:]
                 if target not in dimension_names:
@@ -128,9 +124,7 @@ class SemanticModelValidator:
             elif maps_to.startswith("entity:"):
                 target = maps_to[7:]
                 if target not in entity_names:
-                    errors.append(
-                        f"Synonym '{syn['phrase']}' maps to unknown entity '{target}'."
-                    )
+                    errors.append(f"Synonym '{syn['phrase']}' maps to unknown entity '{target}'.")
             else:
                 errors.append(
                     f"Synonym '{syn['phrase']}' has invalid maps_to format '{maps_to}'. "
@@ -172,6 +166,7 @@ class SemanticModelValidator:
 
 
 # ── Helpers ────────────────────────────────────────────────────────────────────
+
 
 def _duplicates(names: list[str]) -> list[str]:
     seen: set[str] = set()

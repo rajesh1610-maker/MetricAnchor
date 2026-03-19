@@ -213,7 +213,7 @@ ORDER BY revenue DESC`}
               </div>
               <h3 className="mb-2 text-base font-semibold text-gray-100">Maya — Marketing Analyst</h3>
               <p className="mb-5 text-sm text-gray-400 leading-relaxed">
-                Uploads a CSV, defines "revenue" once, and gets trustworthy answers every Monday
+                Uploads a CSV, defines &quot;revenue&quot; once, and gets trustworthy answers every Monday
                 without filing a data request or writing SQL.
               </p>
               <ul className="space-y-2">

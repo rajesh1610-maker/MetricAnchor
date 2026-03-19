@@ -11,9 +11,8 @@ _repo_root = _api_dir.parents[1] if len(_api_dir.parents) > 1 else _api_dir
 if str(_repo_root) not in sys.path:
     sys.path.insert(0, str(_repo_root))
 
-from packages.query_engine import QueryEngine
-
 from config import get_settings
+from packages.query_engine import QueryEngine
 
 
 @lru_cache

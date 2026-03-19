@@ -63,11 +63,7 @@ class LLMAdapter:
     # ── OpenAI ─────────────────────────────────────────────────────────────────
 
     async def _openai(self, messages: list[dict], json_mode: bool = False) -> str:
-        url = (
-            f"{self.base_url.rstrip('/')}/chat/completions"
-            if self.base_url
-            else _OPENAI_URL
-        )
+        url = f"{self.base_url.rstrip('/')}/chat/completions" if self.base_url else _OPENAI_URL
         payload: dict = {
             "model": self.model,
             "messages": messages,
@@ -125,6 +121,7 @@ class LLMAdapter:
 
 
 # ── JSON parsing helper ────────────────────────────────────────────────────────
+
 
 def _parse_json(text: str) -> dict:
     """

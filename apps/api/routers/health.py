@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import sys
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from fastapi import APIRouter
 from pydantic import BaseModel
@@ -12,7 +12,7 @@ from config import get_settings
 
 router = APIRouter(tags=["health"])
 
-_START_TIME = datetime.now(timezone.utc)
+_START_TIME = datetime.now(UTC)
 
 
 class HealthResponse(BaseModel):
@@ -39,7 +39,7 @@ class HealthResponse(BaseModel):
 )
 async def health() -> HealthResponse:
     settings = get_settings()
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     llm_live = bool(settings.llm_api_key and settings.llm_api_key not in ("", "test-key"))
     return HealthResponse(
         status="ok",

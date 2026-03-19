@@ -100,13 +100,9 @@ class SemanticResolver:
                         TermMapping(
                             term=phrase,
                             type="metric",
-                            definition=metric.get(
-                                "description", metric["expression"]
-                            ),
+                            definition=metric.get("description", metric["expression"]),
                             sql_fragment=_metric_to_sql(metric),
-                            filters_applied=_filter_descriptions(
-                                metric.get("filters", [])
-                            ),
+                            filters_applied=_filter_descriptions(metric.get("filters", [])),
                         )
                     )
 
@@ -128,12 +124,8 @@ class SemanticResolver:
         # If nothing matched, return all metrics and dimensions as context
         # so the LLM has the full model to work with
         if not seen_metrics and not seen_dimensions:
-            seen_metrics = {
-                m["name"]: m for m in self._model.get("metrics", [])
-            }
-            seen_dimensions = {
-                d["name"]: d for d in self._model.get("dimensions", [])
-            }
+            seen_metrics = {m["name"]: m for m in self._model.get("metrics", [])}
+            seen_dimensions = {d["name"]: d for d in self._model.get("dimensions", [])}
 
         return ResolvedContext(
             term_mappings=term_mappings,
@@ -200,6 +192,7 @@ class SemanticResolver:
 
 # ── Helpers ────────────────────────────────────────────────────────────────────
 
+
 def _metric_to_sql(metric: dict) -> str:
     """
     Convert a metric definition to a SQL expression with filters applied.
@@ -240,6 +233,4 @@ def _filters_to_sql(filters: list[dict]) -> str:
 
 
 def _filter_descriptions(filters: list[dict]) -> list[str]:
-    return [
-        f"{f['column']} {f['operator']} {f.get('value', '')}" for f in filters
-    ]
+    return [f"{f['column']} {f['operator']} {f.get('value', '')}" for f in filters]
