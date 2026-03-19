@@ -1,5 +1,7 @@
 """SQLite session factory and table initialisation."""
 
+from __future__ import annotations
+
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 from config import get_settings
@@ -44,3 +46,10 @@ async def get_session():
     factory = _get_session_factory()
     async with factory() as session:
         yield session
+
+
+def reset_engine():
+    """Reset the database engine (use in tests only)."""
+    global _engine, _session_factory
+    _engine = None
+    _session_factory = None

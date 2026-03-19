@@ -1,19 +1,36 @@
 """MetricAnchor API — entry point."""
 
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from config import get_settings
-from db import init_db
+from db import get_session, init_db
+from deps import get_query_engine
 from routers import datasets, health, questions, semantic_models
+from services.ingest import IngestService
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Initialise database tables on startup."""
+    settings = get_settings()
+
+    # Ensure data directories exist
+    Path(settings.data_dir).mkdir(parents=True, exist_ok=True)
+    (Path(settings.data_dir) / "uploads").mkdir(exist_ok=True)
+
+    # Initialise SQLite tables
     await init_db()
+
+    # Re-register all dataset views in DuckDB after restart
+    engine = get_query_engine()
+    async for db in get_session():
+        svc = IngestService(db=db, engine=engine)
+        await svc.restore_all_views()
+        break
+
     yield
 
 
@@ -26,7 +43,7 @@ def create_app() -> FastAPI:
             "Trust-first AI analytics copilot. "
             "Every answer shows its SQL, assumptions, term mappings, and confidence."
         ),
-        version="0.1.0",
+        version="0.2.0",
         docs_url="/api/docs",
         redoc_url="/api/redoc",
         openapi_url="/api/openapi.json",

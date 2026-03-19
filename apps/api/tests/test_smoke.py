@@ -1,13 +1,36 @@
-"""Smoke tests — verify the API starts and core routes respond correctly."""
+"""Smoke tests — verify the API starts and all core routes respond correctly."""
 
 import pytest
 from httpx import ASGITransport, AsyncClient
 
-from main import app
+
+def _clear_singletons():
+    from config import get_settings
+    from db import reset_engine
+    from deps import get_query_engine
+    get_settings.cache_clear()
+    get_query_engine.cache_clear()
+    reset_engine()
+
+
+@pytest.fixture(autouse=True)
+def isolated_env(tmp_path, monkeypatch):
+    data_dir = tmp_path / "data"
+    data_dir.mkdir()
+    monkeypatch.setenv("DATA_DIR", str(data_dir))
+    monkeypatch.setenv("DATABASE_URL", f"sqlite+aiosqlite:///{data_dir}/smoke.db")
+    monkeypatch.setenv("LLM_API_KEY", "test-key")
+    _clear_singletons()
+    yield
+    _clear_singletons()
 
 
 @pytest.fixture
 async def client():
+    from db import init_db
+    from main import create_app
+    await init_db()
+    app = create_app()
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as c:
         yield c
 
