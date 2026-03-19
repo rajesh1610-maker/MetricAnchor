@@ -17,4 +17,8 @@ RUN mkdir -p /data
 
 EXPOSE 8000
 
+# Development default — override in docker-compose with CMD or ENTRYPOINT for prod.
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+
+# Production override example:
+# CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "2"]

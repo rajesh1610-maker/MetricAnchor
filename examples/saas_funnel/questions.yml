@@ -1,0 +1,198 @@
+# Example questions and evaluation assertions for saas_funnel
+#
+# Dataset stats (seed=42):
+#   320 total signups  |  300 trial starts  |  131 converted (40.9%)
+#   21 churned (16.0% of converted)  |  Active MRR = $14,260
+#   Channels: Organic=108, Referral=77, Paid Search=69, Social=33, Partner=33
+#   Active by plan: Enterprise=20 ($8,483), Pro=50 ($4,356), Starter=61 ($1,421)
+#   Conversion rate by channel: Social=51.5%, Paid Search=47.8%, Partner=45.5%,
+#                                Referral=40.3%, Organic=32.4%
+
+questions:
+
+  - id: sf_01
+    question: "How many signups are there?"
+    expected_chart: metric
+    sql_contains:
+      - COUNT
+      - saas_funnel
+    result:
+      row_count: 1
+      columns: [signups]
+      value_checks:
+        - column: signups
+          operator: "=="
+          value: 320
+    confidence: high
+    notes: >
+      Total row count — resolves to the signups metric.
+
+  - id: sf_02
+    question: "What is the conversion rate?"
+    expected_chart: metric
+    sql_contains:
+      - converted_paid
+      - COUNT
+      - NULLIF
+    result:
+      row_count: 1
+      columns: [conversion_rate]
+      value_checks:
+        - column: conversion_rate
+          operator: "approx"
+          value: 40.94
+          tolerance: 0.5
+    confidence: medium
+    notes: >
+      131 / 320 = 40.9%. Medium confidence because it's a ratio metric
+      using CASE WHEN on a string boolean.
+
+  - id: sf_03
+    question: "Conversions by acquisition channel"
+    expected_chart: bar
+    sql_contains:
+      - converted_paid
+      - acquisition_channel
+      - GROUP BY
+    result:
+      row_count: 5
+      columns: [acquisition_channel, conversions]
+      value_checks:
+        - column: acquisition_channel
+          operator: "first_value"
+          value: Organic
+    confidence: high
+    notes: >
+      Organic has most conversions in absolute terms (35) because it has the
+      most signups (108), even though its conversion rate (32.4%) is lowest.
+      Ordered by conversion count DESC → Organic first.
+
+  - id: sf_04
+    question: "What is the churn rate?"
+    expected_chart: metric
+    sql_contains:
+      - churned
+      - converted_paid
+      - NULLIF
+    result:
+      row_count: 1
+      columns: [churn_rate]
+      value_checks:
+        - column: churn_rate
+          operator: "approx"
+          value: 16.03
+          tolerance: 0.5
+    confidence: medium
+    notes: >
+      21 churned / 131 converted = 16.0%. Denominator is converted users only.
+
+  - id: sf_05
+    question: "What is total MRR?"
+    expected_chart: metric
+    sql_contains:
+      - SUM(mrr)
+      - saas_funnel
+    result:
+      row_count: 1
+      columns: [mrr]
+      value_checks:
+        - column: mrr
+          operator: "approx"
+          value: 14260
+          tolerance: 50
+    confidence: medium
+    notes: >
+      Active MRR = $14,260 from non-churned converted users. The query engine
+      should default to active MRR (excluding churned) when asked for "total MRR".
+      Medium confidence because the churned exclusion is an assumption.
+
+  - id: sf_06
+    question: "MRR by plan"
+    expected_chart: bar
+    sql_contains:
+      - mrr
+      - plan
+      - GROUP BY
+    result:
+      row_count: {"min": 3, "max": 4}
+      columns: [plan, mrr]
+      value_checks:
+        - column: plan
+          operator: "first_value"
+          value: Enterprise
+    confidence: medium
+    notes: >
+      Enterprise leads ($8,483), then Pro ($4,356), Starter ($1,421).
+      Empty plan (non-converted users) may appear as a 4th row.
+
+  - id: sf_07
+    question: "Signups by acquisition channel"
+    expected_chart: bar
+    sql_contains:
+      - COUNT
+      - acquisition_channel
+      - GROUP BY
+    result:
+      row_count: 5
+      columns: [acquisition_channel, signups]
+      value_checks:
+        - column: acquisition_channel
+          operator: "first_value"
+          value: Organic
+    confidence: high
+    notes: >
+      Organic (108) > Referral (77) > Paid Search (69) > Social (33) = Partner (33).
+
+  - id: sf_08
+    question: "How many Enterprise users are there?"
+    expected_chart: metric
+    sql_contains:
+      - COUNT
+      - Enterprise
+    result:
+      row_count: 1
+      columns: [conversions]
+      value_checks:
+        - column: conversions
+          operator: "=="
+          value: 20
+    confidence: high
+    notes: >
+      Filters to plan = 'Enterprise' and counts converted users. 20 active Enterprise accounts.
+
+  - id: sf_09
+    question: "Conversion rate by channel"
+    expected_chart: bar
+    sql_contains:
+      - converted_paid
+      - acquisition_channel
+      - GROUP BY
+      - NULLIF
+    result:
+      row_count: 5
+      columns: [acquisition_channel, conversion_rate]
+      value_checks:
+        - column: acquisition_channel
+          operator: "first_value"
+          value: Social
+    confidence: medium
+    notes: >
+      Social (51.5%) > Paid Search (47.8%) > Partner (45.5%) > Referral (40.3%) > Organic (32.4%).
+      Social has the highest rate despite having the fewest absolute signups.
+
+  - id: sf_10
+    question: "How many users churned?"
+    expected_chart: metric
+    sql_contains:
+      - churned
+      - saas_funnel
+    result:
+      row_count: 1
+      columns: [churned_users]
+      value_checks:
+        - column: churned_users
+          operator: "=="
+          value: 21
+    confidence: high
+    notes: >
+      Total churned users = 21. Simple count with churned = 'true' filter.

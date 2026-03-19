@@ -1,147 +1,95 @@
 name: support_tickets
 dataset: support_tickets
 description: >
-  Customer support ticket analytics. Covers volume, resolution time,
-  satisfaction scores, and backlog across teams, priority levels, and channels.
-
-grain: "one row = one support ticket"
+  Customer support ticket metrics covering volume, SLA performance,
+  resolution speed, and satisfaction scores. One row per ticket.
+grain: one row per support ticket
 time_column: created_at
 
 metrics:
   - name: ticket_count
-    description: "Total number of support tickets created"
-    expression: "COUNT(ticket_id)"
-    format: number
-    default_aggregation: count
-    aliases:
-      - tickets
-      - volume
-      - support requests
+    description: Total number of support tickets
+    expression: COUNT(*)
+    aliases: [tickets, volume, ticket_volume, total_tickets, issues, support_requests]
 
-  - name: open_tickets
-    description: "Number of tickets currently open (not resolved or closed)"
-    expression: "COUNT(ticket_id)"
-    format: number
-    default_aggregation: count
-    filters:
-      - column: status
-        operator: "in"
-        value: "('open', 'pending')"
-    aliases:
-      - backlog
-      - open issues
-      - outstanding tickets
+  - name: sla_breach_rate
+    description: >
+      Percentage of resolved tickets where the SLA was breached.
+      Unresolved tickets (blank sla_breached) are excluded from this rate.
+    expression: >
+      SUM(CASE WHEN sla_breached = 'true' THEN 1 ELSE 0 END)
+      / NULLIF(SUM(CASE WHEN sla_breached IN ('true','false') THEN 1 ELSE 0 END), 0) * 100
+    aliases: [breach_rate, sla_breaches, sla_violation_rate, sla_compliance, sla_miss_rate]
+    format: percent
+
+  - name: sla_breach_count
+    description: Number of tickets where the SLA was breached
+    expression: SUM(CASE WHEN sla_breached = 'true' THEN 1 ELSE 0 END)
+    aliases: [breached_tickets, violations, sla_violations]
 
   - name: avg_resolution_hours
-    description: "Average time from ticket creation to resolution, in hours"
-    expression: "AVG(resolution_hours)"
-    format: number
-    default_aggregation: avg
-    filters:
-      - column: status
-        operator: "="
-        value: "resolved"
-    aliases:
-      - resolution time
-      - time to resolve
-      - MTTR
+    description: Average time to resolve a ticket in hours (resolved tickets only)
+    expression: >
+      AVG(CASE WHEN resolution_hours IS NOT NULL AND resolution_hours != ''
+               THEN CAST(resolution_hours AS DOUBLE) END)
+    aliases: [resolution_time, avg_resolution_time, time_to_resolve, mean_resolution_time, ttr, mttr]
 
-  - name: csat_score
-    description: "Average customer satisfaction score (1–5 scale)"
-    expression: "AVG(satisfaction_score)"
-    format: number
-    default_aggregation: avg
-    filters:
-      - column: satisfaction_score
-        operator: "is not"
-        value: "null"
-    aliases:
-      - satisfaction
-      - CSAT
-      - customer satisfaction
-
-  - name: resolution_rate
-    description: "Percentage of tickets resolved out of all tickets"
-    expression: "100.0 * COUNT(CASE WHEN status = 'resolved' THEN 1 END) / NULLIF(COUNT(ticket_id), 0)"
-    format: percent
-    default_aggregation: sum
-    aliases:
-      - resolve rate
-      - resolution percentage
+  - name: avg_csat
+    description: Average customer satisfaction score on a 1–5 scale (resolved tickets only)
+    expression: >
+      AVG(CASE WHEN csat IS NOT NULL AND csat != ''
+               THEN CAST(csat AS DOUBLE) END)
+    aliases: [csat, satisfaction, customer_satisfaction, csat_score, satisfaction_score, nps_proxy]
 
 dimensions:
+  - name: team
+    column: team
+    description: Support team responsible for the ticket
+    aliases: [support_team, department, assigned_team, squad]
+    values: [Engineering, Billing, Product, Onboarding]
+
   - name: priority
     column: priority
-    description: "Ticket priority level"
-    values:
-      - critical
-      - high
-      - medium
-      - low
-    aliases:
-      - severity
-      - urgency
-
-  - name: team
-    column: assigned_team
-    description: "Support team responsible for the ticket"
-    aliases:
-      - assigned team
-      - squad
-
-  - name: channel
-    column: channel
-    description: "How the ticket was submitted (email, chat, phone, portal)"
-    values:
-      - email
-      - chat
-      - phone
-      - portal
-    aliases:
-      - source
-      - contact method
+    description: Ticket priority level (P1 = most critical)
+    aliases: [severity, urgency, ticket_priority, sla_tier]
+    values: [P1, P2, P3]
 
   - name: category
     column: category
-    description: "Issue category (billing, technical, account, general)"
-    aliases:
-      - issue type
-      - type
+    description: Issue category or topic of the ticket
+    aliases: [issue_type, type, issue_category, topic, problem_type]
+    values: [Bug, Feature Request, Account, Billing, Integration]
+
+  - name: sla_breached
+    column: sla_breached
+    description: Whether the SLA was breached — 'true', 'false', or blank if unresolved
+    aliases: [breached, sla_status, sla_met]
 
   - name: created_at
     column: created_at
-    description: "Date and time the ticket was created"
+    description: Timestamp when the ticket was opened
+    aliases: [date, created, open_date, ticket_date, submission_date, opened_at]
     is_date: true
-    aliases:
-      - date
-      - created date
-      - opened
 
 synonyms:
-  - phrase: "backlog"
-    maps_to: "metric:open_tickets"
-  - phrase: "outstanding"
-    maps_to: "metric:open_tickets"
-  - phrase: "resolution time"
-    maps_to: "metric:avg_resolution_hours"
-  - phrase: "CSAT"
-    maps_to: "metric:csat_score"
-  - phrase: "satisfaction"
-    maps_to: "metric:csat_score"
-  - phrase: "severity"
-    maps_to: "dimension:priority"
-
-business_rules:
-  - name: exclude_test_tickets
-    description: "Exclude tickets tagged as test or internal"
-    filter: "category != 'test'"
-    applies_to:
-      - metric:ticket_count
-      - metric:open_tickets
-      - metric:avg_resolution_hours
-      - metric:csat_score
+  - phrase: p1 incidents
+    maps_to: ticket_count
+  - phrase: critical issues
+    maps_to: ticket_count
+  - phrase: how long to resolve
+    maps_to: avg_resolution_hours
+  - phrase: response time
+    maps_to: avg_resolution_hours
+  - phrase: customer happiness
+    maps_to: avg_csat
+  - phrase: how satisfied are customers
+    maps_to: avg_csat
+  - phrase: backlog
+    maps_to: ticket_count
+  - phrase: open issues
+    maps_to: ticket_count
 
 caveats:
-  - "resolution_hours is only populated when status = 'resolved'. Open tickets are excluded from avg_resolution_hours."
-  - "satisfaction_score is optional — not all tickets receive a CSAT response."
-  - "Tickets created more than 90 days ago may have been archived and are not in this dataset."
+  - sla_breached is blank for unresolved tickets — they are excluded from sla_breach_rate and avg_csat.
+  - resolution_hours and csat are only populated for resolved tickets.
+  - SLA thresholds are P1=4h, P2=24h, P3=72h but thresholds are not stored as columns.

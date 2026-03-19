@@ -47,7 +47,10 @@ coverage.xml
 .hypothesis/
 test-results/
 playwright-report/
-test-results/
+tests/e2e/report/
+
+# ── Eval reports (generated on each run) ──────────────────
+evals/last_run.json
 
 # ── Type checking ─────────────────────────────────────────
 .mypy_cache/

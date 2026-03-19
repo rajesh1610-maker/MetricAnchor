@@ -1,10 +1,10 @@
 import type { ColumnProfile } from "@/lib/api";
 
 const TYPE_LABELS: Record<string, { label: string; color: string }> = {
-  numeric: { label: "Numeric", color: "bg-blue-100 text-blue-700" },
-  date: { label: "Date / Time", color: "bg-purple-100 text-purple-700" },
-  bool: { label: "Boolean", color: "bg-yellow-100 text-yellow-700" },
-  text: { label: "Text", color: "bg-gray-100 text-gray-600" },
+  numeric: { label: "Numeric", color: "bg-blue-900/30 border-blue-700 text-blue-300" },
+  date: { label: "Date / Time", color: "bg-purple-900/30 border-purple-700 text-purple-300" },
+  bool: { label: "Boolean", color: "bg-yellow-900/20 border-yellow-700 text-yellow-300" },
+  text: { label: "Text", color: "bg-gray-800 border-gray-700 text-gray-400" },
 };
 
 function typeLabel(col: ColumnProfile) {
@@ -23,16 +23,16 @@ export default function ColumnProfileCard({ column }: Props) {
   const nullBarWidth = Math.min(column.null_pct, 100);
 
   return (
-    <div className="rounded-xl border border-gray-100 bg-white p-5 shadow-sm">
+    <div className="rounded-xl border border-gray-800 bg-gray-900 p-5">
       {/* Header */}
       <div className="mb-3 flex items-start justify-between gap-2">
-        <code className="text-sm font-semibold text-gray-900">{column.name}</code>
-        <span className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${color}`}>
+        <code className="text-sm font-semibold text-gray-100">{column.name}</code>
+        <span className={`shrink-0 rounded-full border px-2 py-0.5 text-xs font-medium ${color}`}>
           {label}
         </span>
       </div>
 
-      <p className="mb-3 truncate text-xs text-gray-400">{column.data_type}</p>
+      <p className="mb-3 truncate text-xs text-gray-600 font-mono">{column.data_type}</p>
 
       {/* Stats grid */}
       <div className="grid grid-cols-2 gap-2 text-xs">
@@ -49,13 +49,13 @@ export default function ColumnProfileCard({ column }: Props) {
       {/* Null % bar */}
       {column.null_pct > 0 && (
         <div className="mt-3">
-          <div className="h-1.5 w-full overflow-hidden rounded-full bg-gray-100">
+          <div className="h-1.5 w-full overflow-hidden rounded-full bg-gray-800">
             <div
-              className="h-full rounded-full bg-amber-400"
+              className="h-full rounded-full bg-amber-500"
               style={{ width: `${nullBarWidth}%` }}
             />
           </div>
-          <p className="mt-1 text-xs text-gray-400">{column.null_pct}% null</p>
+          <p className="mt-1 text-xs text-gray-600">{column.null_pct}% null</p>
         </div>
       )}
 
@@ -65,7 +65,7 @@ export default function ColumnProfileCard({ column }: Props) {
           {column.sample_values.map((v) => (
             <span
               key={v}
-              className="max-w-[120px] truncate rounded bg-gray-50 px-2 py-0.5 text-xs text-gray-500"
+              className="max-w-[120px] truncate rounded bg-gray-800 px-2 py-0.5 text-xs text-gray-400"
               title={v}
             >
               {v}
@@ -80,8 +80,8 @@ export default function ColumnProfileCard({ column }: Props) {
 function Stat({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <p className="text-gray-400">{label}</p>
-      <p className="font-medium text-gray-700 truncate">{value}</p>
+      <p className="text-gray-600">{label}</p>
+      <p className="font-medium text-gray-300 truncate">{value}</p>
     </div>
   );
 }

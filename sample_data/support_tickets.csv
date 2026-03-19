@@ -1,36 +1,257 @@
-ticket_id,created_at,resolved_at,customer_tier,issue_category,priority,status,assigned_agent,csat_score,resolution_time_hours
-TKT-001,2025-10-01 09:14:00,2025-10-01 11:02:00,enterprise,billing,P1,resolved,agent_sara,5,1.8
-TKT-002,2025-10-02 10:30:00,2025-10-03 14:15:00,free,login,P3,resolved,agent_tom,4,27.8
-TKT-003,2025-10-03 14:22:00,,enterprise,data_export,P2,open,agent_sara,,
-TKT-004,2025-10-04 08:55:00,2025-10-04 10:30:00,pro,performance,P2,resolved,agent_mia,5,1.6
-TKT-005,2025-10-06 16:40:00,2025-10-08 09:10:00,free,billing,P3,resolved,agent_tom,3,40.5
-TKT-006,2025-10-07 11:05:00,2025-10-07 12:55:00,enterprise,integration,P1,resolved,agent_sara,5,1.8
-TKT-007,2025-10-09 13:30:00,2025-10-11 16:00:00,pro,login,P3,resolved,agent_mia,4,50.5
-TKT-008,2025-10-10 09:00:00,,enterprise,data_export,P2,pending,agent_sara,,
-TKT-009,2025-10-12 15:20:00,2025-10-12 17:45:00,free,billing,P3,resolved,agent_tom,2,2.4
-TKT-010,2025-10-14 10:45:00,2025-10-14 14:30:00,pro,performance,P2,resolved,agent_mia,5,3.8
-TKT-011,2025-10-15 08:30:00,2025-10-15 09:15:00,enterprise,billing,P1,resolved,agent_sara,5,0.8
-TKT-012,2025-10-17 14:10:00,2025-10-20 11:00:00,free,feature_request,P4,resolved,agent_tom,,68.8
-TKT-013,2025-10-19 11:30:00,2025-10-19 13:45:00,pro,integration,P2,resolved,agent_mia,4,2.3
-TKT-014,2025-10-21 16:00:00,,free,login,P3,open,agent_tom,,
-TKT-015,2025-10-23 09:20:00,2025-10-23 10:55:00,enterprise,performance,P2,resolved,agent_sara,5,1.6
-TKT-016,2025-10-25 13:45:00,2025-10-27 15:30:00,pro,billing,P3,resolved,agent_mia,3,49.8
-TKT-017,2025-10-28 10:15:00,2025-10-28 11:30:00,enterprise,integration,P1,resolved,agent_sara,5,1.3
-TKT-018,2025-10-30 14:30:00,2025-11-02 09:00:00,free,feature_request,P4,resolved,agent_tom,,66.5
-TKT-019,2025-11-02 09:45:00,2025-11-02 12:00:00,pro,data_export,P2,resolved,agent_mia,4,2.3
-TKT-020,2025-11-05 11:20:00,,enterprise,performance,P1,open,agent_sara,,
-TKT-021,2025-11-07 15:00:00,2025-11-08 10:30:00,free,billing,P3,resolved,agent_tom,4,19.5
-TKT-022,2025-11-10 08:40:00,2025-11-10 09:50:00,enterprise,login,P2,resolved,agent_sara,5,1.2
-TKT-023,2025-11-12 13:15:00,2025-11-14 16:00:00,pro,integration,P2,resolved,agent_mia,3,50.8
-TKT-024,2025-11-14 10:30:00,,free,performance,P3,pending,agent_tom,,
-TKT-025,2025-11-17 09:00:00,2025-11-17 11:30:00,enterprise,data_export,P2,resolved,agent_sara,5,2.5
-TKT-026,2025-11-20 14:45:00,2025-11-22 10:15:00,pro,billing,P3,resolved,agent_mia,4,43.5
-TKT-027,2025-11-22 11:00:00,2025-11-22 12:15:00,enterprise,integration,P1,resolved,agent_sara,5,1.3
-TKT-028,2025-11-25 16:30:00,2025-11-28 09:00:00,free,login,P3,resolved,agent_tom,2,64.5
-TKT-029,2025-11-28 09:15:00,2025-11-28 11:00:00,pro,performance,P2,resolved,agent_mia,5,1.8
-TKT-030,2025-12-01 10:00:00,,enterprise,data_export,P1,open,agent_sara,,
-TKT-031,2025-12-03 14:20:00,2025-12-05 11:30:00,pro,billing,P3,resolved,agent_mia,4,45.2
-TKT-032,2025-12-06 09:30:00,2025-12-06 10:45:00,enterprise,login,P2,resolved,agent_sara,5,1.3
-TKT-033,2025-12-09 15:00:00,2025-12-12 16:00:00,free,feature_request,P4,resolved,agent_tom,,73.0
-TKT-034,2025-12-12 11:15:00,2025-12-12 14:00:00,pro,integration,P2,resolved,agent_mia,4,2.8
-TKT-035,2025-12-15 08:45:00,,free,billing,P3,open,agent_tom,,
+created_at,team,priority,category,sla_breached,resolution_hours,csat
+2025-10-01 17:16,Billing,P3,Billing,true,20.4,4
+2025-10-01 08:04,Onboarding,P2,Billing,false,16.1,3
+2025-10-02 09:20,Billing,P2,Bug,true,12.7,3
+2025-10-02 10:30,Product,P1,Feature Request,false,2.5,3
+2025-10-03 11:11,Billing,P3,Account,false,33.0,4
+2025-10-04 15:11,Engineering,P3,Account,false,42.7,3
+2025-10-04 18:42,Billing,P2,Account,false,12.5,3
+2025-10-05 15:34,Engineering,P1,Account,false,3.3,3
+2025-10-06 14:45,Product,P2,Bug,false,7.0,4
+2025-10-07 13:57,Billing,P1,Bug,false,1.9,3
+2025-10-07 11:27,Billing,P1,Billing,false,1.7,4
+2025-10-07 15:08,Product,P2,Feature Request,false,8.6,4
+2025-10-08 09:41,Billing,P3,Billing,false,67.8,2
+2025-10-09 15:57,Product,P2,Feature Request,false,3.1,4
+2025-10-10 10:27,Product,P2,Bug,false,11.7,3
+2025-10-10 13:02,Product,P3,Billing,true,37.1,3
+2025-10-11 12:29,Product,P3,Bug,true,48.8,3
+2025-10-11 18:40,Billing,P3,Account,false,45.1,3
+2025-10-11 15:36,Billing,P3,Account,true,39.2,3
+2025-10-12 17:16,Billing,P3,Billing,false,8.2,5
+2025-10-12 12:51,Engineering,P2,Bug,,,
+2025-10-13 12:16,Engineering,P2,Bug,,,
+2025-10-13 09:38,Engineering,P2,Integration,,,
+2025-10-14 16:55,Product,P2,Feature Request,false,6.3,4
+2025-10-15 14:15,Onboarding,P3,Account,false,57.9,2
+2025-10-16 08:10,Product,P2,Account,false,2.5,5
+2025-10-16 14:30,Billing,P2,Account,true,18.6,2
+2025-10-17 08:06,Billing,P2,Feature Request,false,8.6,4
+2025-10-18 09:16,Product,P3,Feature Request,true,59.2,2
+2025-10-18 13:43,Product,P2,Billing,false,15.1,2
+2025-10-18 09:43,Product,P2,Account,true,16.9,2
+2025-10-19 09:03,Engineering,P2,Bug,,,
+2025-10-20 10:24,Product,P3,Integration,true,49.9,3
+2025-10-20 15:42,Product,P3,Account,false,61.6,2
+2025-10-20 13:16,Onboarding,P3,Integration,false,32.5,4
+2025-10-21 15:04,Engineering,P3,Feature Request,false,9.7,4
+2025-10-22 18:06,Onboarding,P3,Bug,false,14.9,4
+2025-10-22 17:46,Onboarding,P3,Bug,,,
+2025-10-23 13:57,Billing,P3,Bug,false,63.8,2
+2025-10-24 09:34,Engineering,P3,Billing,false,31.0,4
+2025-10-25 12:25,Billing,P3,Billing,false,39.2,3
+2025-10-26 12:41,Onboarding,P3,Feature Request,false,27.1,4
+2025-10-27 15:05,Product,P3,Billing,true,30.2,4
+2025-10-28 17:15,Billing,P2,Bug,,,
+2025-10-28 08:02,Billing,P1,Account,false,2.3,3
+2025-10-28 18:55,Billing,P2,Billing,false,5.4,4
+2025-10-29 10:31,Engineering,P3,Integration,,,
+2025-10-29 18:08,Product,P2,Integration,,,
+2025-10-29 09:52,Engineering,P3,Integration,false,12.0,5
+2025-10-30 11:27,Engineering,P3,Account,,,
+2025-10-30 13:53,Billing,P3,Billing,false,13.5,4
+2025-10-31 12:09,Engineering,P1,Bug,,,
+2025-10-31 18:39,Product,P2,Feature Request,false,6.0,4
+2025-10-31 08:11,Billing,P2,Integration,,,
+2025-11-01 10:40,Product,P3,Feature Request,false,55.1,2
+2025-11-01 17:05,Engineering,P2,Bug,false,14.3,3
+2025-11-01 11:12,Product,P3,Feature Request,,,
+2025-11-02 18:13,Billing,P1,Feature Request,false,2.3,4
+2025-11-03 08:03,Engineering,P3,Billing,true,35.4,4
+2025-11-04 16:11,Engineering,P2,Feature Request,true,15.5,3
+2025-11-04 11:46,Engineering,P1,Account,,,
+2025-11-05 11:47,Product,P2,Billing,true,5.8,4
+2025-11-06 17:29,Engineering,P3,Bug,true,9.4,4
+2025-11-07 17:03,Billing,P2,Bug,false,6.5,4
+2025-11-08 18:39,Engineering,P2,Feature Request,false,5.6,4
+2025-11-09 15:53,Product,P3,Bug,false,38.3,3
+2025-11-09 17:09,Billing,P1,Feature Request,false,1.3,4
+2025-11-09 15:46,Onboarding,P3,Feature Request,,,
+2025-11-10 16:48,Engineering,P3,Account,false,56.9,2
+2025-11-10 15:42,Engineering,P3,Integration,false,24.3,4
+2025-11-11 15:29,Product,P3,Billing,,,
+2025-11-12 09:24,Onboarding,P2,Billing,false,10.1,4
+2025-11-12 11:50,Onboarding,P2,Bug,false,6.5,4
+2025-11-13 14:23,Product,P2,Integration,false,18.3,2
+2025-11-13 10:21,Billing,P1,Feature Request,false,2.9,3
+2025-11-14 11:20,Engineering,P2,Integration,true,19.2,2
+2025-11-15 13:28,Engineering,P3,Feature Request,,,
+2025-11-16 18:44,Billing,P1,Billing,false,2.3,3
+2025-11-16 12:04,Onboarding,P3,Bug,true,34.4,4
+2025-11-17 18:34,Engineering,P3,Account,false,38.3,3
+2025-11-18 11:04,Billing,P2,Billing,,,
+2025-11-18 13:31,Engineering,P3,Billing,false,26.8,4
+2025-11-18 10:50,Product,P3,Billing,true,24.9,4
+2025-11-19 13:18,Billing,P3,Billing,,,
+2025-11-20 18:50,Engineering,P3,Billing,false,66.3,2
+2025-11-20 16:45,Engineering,P2,Bug,false,3.8,4
+2025-11-21 14:59,Billing,P2,Feature Request,false,4.5,5
+2025-11-22 16:32,Engineering,P2,Feature Request,,,
+2025-11-22 10:51,Billing,P3,Account,false,64.5,2
+2025-11-23 12:01,Onboarding,P2,Billing,true,18.2,2
+2025-11-23 08:38,Billing,P3,Feature Request,,,
+2025-11-24 18:05,Product,P2,Integration,false,1.9,5
+2025-11-24 14:09,Onboarding,P2,Account,true,11.0,4
+2025-11-25 11:46,Billing,P2,Bug,false,7.2,4
+2025-11-25 14:08,Onboarding,P3,Feature Request,false,16.2,5
+2025-11-26 17:48,Product,P1,Feature Request,false,2.3,4
+2025-11-26 10:12,Billing,P1,Account,false,1.0,4
+2025-11-27 15:14,Billing,P3,Bug,true,57.7,3
+2025-11-28 14:11,Engineering,P2,Integration,false,10.2,4
+2025-11-29 17:30,Product,P2,Bug,true,19.9,2
+2025-11-29 17:01,Product,P3,Account,true,49.0,3
+2025-11-30 14:40,Engineering,P1,Feature Request,false,0.9,4
+2025-11-30 10:48,Onboarding,P2,Feature Request,false,18.8,2
+2025-12-01 13:06,Product,P3,Integration,true,48.5,3
+2025-12-02 10:06,Billing,P1,Bug,false,3.2,3
+2025-12-02 16:45,Engineering,P3,Billing,false,40.6,4
+2025-12-03 10:59,Product,P1,Account,,,
+2025-12-03 13:11,Engineering,P2,Billing,false,9.7,4
+2025-12-04 10:05,Engineering,P3,Bug,true,14.8,4
+2025-12-04 15:48,Billing,P3,Bug,,,
+2025-12-05 12:42,Engineering,P1,Billing,false,2.1,3
+2025-12-06 10:54,Engineering,P1,Account,false,1.1,4
+2025-12-07 09:06,Engineering,P3,Feature Request,false,54.4,3
+2025-12-07 08:46,Onboarding,P3,Account,true,65.8,2
+2025-12-08 10:53,Engineering,P3,Billing,true,42.5,4
+2025-12-09 13:07,Billing,P2,Bug,,,
+2025-12-10 14:18,Billing,P2,Feature Request,true,14.9,3
+2025-12-10 14:12,Billing,P3,Billing,true,20.0,5
+2025-12-11 14:28,Onboarding,P3,Integration,false,6.8,5
+2025-12-11 10:04,Billing,P3,Bug,false,49.1,3
+2025-12-11 15:17,Billing,P2,Bug,true,9.0,4
+2025-12-12 14:31,Product,P3,Billing,true,64.5,2
+2025-12-12 08:06,Billing,P1,Account,false,2.2,4
+2025-12-13 17:06,Onboarding,P2,Bug,false,12.7,3
+2025-12-13 16:16,Product,P3,Account,true,34.9,3
+2025-12-14 15:20,Onboarding,P3,Bug,false,67.4,2
+2025-12-14 10:31,Onboarding,P2,Bug,false,13.7,3
+2025-12-15 15:30,Billing,P2,Billing,false,10.6,3
+2025-12-16 12:20,Engineering,P1,Feature Request,false,1.8,4
+2025-12-16 18:21,Engineering,P3,Bug,false,56.2,3
+2025-12-17 11:15,Billing,P3,Feature Request,,,
+2025-12-18 08:29,Billing,P1,Billing,false,0.8,4
+2025-12-19 15:37,Billing,P3,Feature Request,,,
+2025-12-19 11:21,Engineering,P2,Account,false,3.3,5
+2025-12-20 09:53,Onboarding,P3,Bug,true,66.1,2
+2025-12-20 09:45,Onboarding,P2,Feature Request,false,12.1,3
+2025-12-21 18:52,Engineering,P2,Bug,true,10.3,4
+2025-12-21 15:42,Billing,P3,Feature Request,true,18.4,4
+2025-12-22 15:17,Engineering,P1,Billing,false,2.5,4
+2025-12-22 16:12,Onboarding,P3,Account,false,32.9,4
+2025-12-23 09:40,Engineering,P2,Billing,false,9.6,4
+2025-12-24 11:01,Billing,P3,Account,true,43.3,3
+2025-12-25 10:01,Onboarding,P2,Account,true,13.5,3
+2025-12-26 09:20,Onboarding,P3,Bug,false,65.8,2
+2025-12-27 10:15,Onboarding,P3,Feature Request,true,46.8,3
+2025-12-27 12:31,Engineering,P3,Integration,false,57.4,3
+2025-12-28 11:59,Engineering,P1,Billing,false,2.5,3
+2025-12-28 15:34,Billing,P1,Bug,false,2.0,4
+2025-12-28 10:23,Billing,P3,Feature Request,false,48.3,3
+2025-12-29 08:44,Billing,P2,Account,false,2.1,5
+2025-12-29 18:07,Onboarding,P3,Feature Request,false,45.6,3
+2025-12-30 11:19,Engineering,P2,Bug,false,18.7,2
+2025-12-30 08:17,Engineering,P3,Integration,false,60.5,2
+2025-12-31 09:52,Onboarding,P3,Account,false,58.2,3
+2025-12-31 08:48,Engineering,P2,Bug,false,15.0,3
+2025-12-31 13:36,Engineering,P3,Account,true,14.4,4
+2026-01-01 13:28,Engineering,P3,Integration,false,53.3,3
+2026-01-02 10:25,Product,P2,Billing,true,16.3,2
+2026-01-02 18:14,Onboarding,P3,Integration,false,64.8,2
+2026-01-03 09:23,Onboarding,P2,Billing,false,8.9,3
+2026-01-03 15:07,Engineering,P3,Bug,false,53.9,3
+2026-01-03 14:54,Engineering,P2,Integration,false,6.4,4
+2026-01-04 12:15,Engineering,P3,Billing,false,17.2,4
+2026-01-05 14:43,Onboarding,P2,Billing,true,1.7,5
+2026-01-05 11:30,Engineering,P2,Feature Request,false,2.9,4
+2026-01-06 17:24,Onboarding,P3,Integration,true,52.4,2
+2026-01-06 16:31,Billing,P2,Feature Request,false,11.9,3
+2026-01-06 08:08,Onboarding,P3,Bug,true,38.9,3
+2026-01-07 12:33,Onboarding,P2,Feature Request,false,18.2,3
+2026-01-07 18:40,Billing,P3,Feature Request,true,53.3,3
+2026-01-08 12:10,Engineering,P1,Bug,,,
+2026-01-08 15:29,Product,P2,Integration,false,2.3,5
+2026-01-09 12:11,Onboarding,P3,Bug,,,
+2026-01-09 08:33,Onboarding,P3,Billing,true,47.1,3
+2026-01-10 18:07,Engineering,P3,Bug,true,11.8,4
+2026-01-10 18:30,Billing,P3,Integration,true,15.5,5
+2026-01-11 17:08,Onboarding,P3,Bug,false,46.7,3
+2026-01-11 14:05,Engineering,P1,Account,true,0.6,5
+2026-01-12 11:10,Engineering,P3,Integration,,,
+2026-01-13 12:57,Billing,P3,Integration,false,24.5,4
+2026-01-14 17:38,Engineering,P3,Billing,false,36.4,3
+2026-01-14 13:29,Billing,P3,Billing,true,32.9,3
+2026-01-15 09:58,Product,P3,Integration,true,46.1,3
+2026-01-15 17:03,Onboarding,P2,Integration,true,7.1,4
+2026-01-16 13:16,Onboarding,P3,Account,false,34.8,4
+2026-01-16 08:05,Product,P3,Bug,false,34.7,4
+2026-01-17 10:13,Product,P2,Billing,false,9.8,3
+2026-01-18 16:01,Product,P3,Integration,,,
+2026-01-19 15:19,Engineering,P2,Account,false,17.6,2
+2026-01-20 08:12,Onboarding,P2,Billing,false,8.8,3
+2026-01-20 14:53,Engineering,P1,Integration,false,1.2,4
+2026-01-21 10:47,Product,P2,Feature Request,true,10.3,3
+2026-01-21 14:03,Product,P3,Account,true,42.3,3
+2026-01-22 12:02,Engineering,P3,Feature Request,false,36.7,4
+2026-01-23 16:01,Billing,P3,Account,false,56.6,3
+2026-01-23 18:22,Billing,P2,Bug,false,9.2,4
+2026-01-24 18:21,Billing,P2,Billing,false,9.6,4
+2026-01-25 18:41,Onboarding,P3,Account,true,50.8,3
+2026-01-25 18:30,Product,P3,Billing,true,44.6,3
+2026-01-25 14:31,Engineering,P2,Account,,,
+2026-01-26 16:02,Engineering,P1,Bug,false,1.7,4
+2026-01-27 08:49,Billing,P1,Bug,false,2.2,4
+2026-01-27 15:51,Onboarding,P2,Bug,false,11.0,4
+2026-01-28 08:32,Onboarding,P1,Bug,false,3.2,3
+2026-01-28 16:31,Engineering,P3,Integration,true,15.7,4
+2026-01-29 08:15,Engineering,P3,Feature Request,true,58.6,2
+2026-01-29 18:42,Onboarding,P2,Feature Request,false,6.4,4
+2026-01-30 16:50,Product,P3,Billing,false,32.6,4
+2026-01-31 14:49,Onboarding,P2,Billing,true,11.1,3
+2026-01-31 18:45,Engineering,P1,Billing,false,2.7,3
+2026-02-01 13:58,Onboarding,P3,Feature Request,false,49.4,3
+2026-02-01 16:39,Billing,P3,Integration,true,15.1,4
+2026-02-02 08:34,Product,P3,Integration,true,31.1,3
+2026-02-02 16:19,Billing,P3,Billing,true,67.5,2
+2026-02-03 14:32,Product,P2,Bug,true,12.5,3
+2026-02-03 09:28,Engineering,P1,Feature Request,true,1.7,4
+2026-02-04 18:42,Product,P2,Integration,false,19.8,2
+2026-02-05 16:47,Product,P2,Feature Request,false,14.7,3
+2026-02-05 14:05,Engineering,P2,Account,true,8.2,4
+2026-02-06 18:33,Billing,P1,Bug,,,
+2026-02-07 15:46,Product,P3,Integration,false,45.5,3
+2026-02-08 09:44,Onboarding,P1,Bug,false,0.9,5
+2026-02-08 14:07,Engineering,P2,Billing,false,8.3,4
+2026-02-08 15:01,Engineering,P3,Bug,false,29.0,4
+2026-02-09 15:00,Engineering,P3,Bug,true,61.1,3
+2026-02-09 14:30,Engineering,P2,Integration,false,12.1,4
+2026-02-10 13:05,Onboarding,P1,Bug,false,3.1,2
+2026-02-10 15:47,Product,P3,Feature Request,false,30.5,4
+2026-02-11 18:35,Engineering,P2,Bug,false,15.8,3
+2026-02-12 08:07,Onboarding,P3,Billing,false,38.3,3
+2026-02-13 09:51,Billing,P3,Feature Request,false,57.4,3
+2026-02-13 08:55,Billing,P2,Account,false,18.8,2
+2026-02-14 10:19,Billing,P1,Integration,false,1.4,4
+2026-02-14 09:20,Onboarding,P3,Bug,false,17.3,4
+2026-02-15 11:31,Onboarding,P2,Integration,true,2.5,5
+2026-02-16 18:14,Billing,P3,Feature Request,true,40.3,3
+2026-02-16 10:19,Onboarding,P1,Account,false,0.8,5
+2026-02-17 11:34,Billing,P3,Account,false,14.8,4
+2026-02-17 15:53,Onboarding,P3,Account,,,
+2026-02-18 13:53,Product,P2,Bug,true,6.6,4
+2026-02-18 16:36,Product,P3,Account,,,
+2026-02-19 16:51,Engineering,P3,Billing,false,67.9,2
+2026-02-20 13:13,Product,P2,Feature Request,true,9.9,4
+2026-02-21 18:11,Product,P1,Billing,false,0.4,5
+2026-02-21 09:34,Billing,P3,Billing,false,39.4,3
+2026-02-22 10:53,Onboarding,P3,Billing,false,56.4,2
+2026-02-23 12:43,Product,P1,Account,false,2.0,3
+2026-02-23 15:23,Onboarding,P2,Bug,false,7.1,4
+2026-02-24 18:25,Billing,P3,Account,,,
+2026-02-25 10:04,Engineering,P3,Bug,false,51.8,3
+2026-02-26 18:01,Product,P1,Integration,false,3.6,2
+2026-02-26 18:43,Onboarding,P3,Account,false,40.7,4
+2026-02-27 13:33,Engineering,P3,Feature Request,false,23.0,4
+2026-02-27 11:21,Product,P3,Bug,false,32.0,3
+2026-02-27 11:12,Engineering,P3,Bug,true,66.6,2
+2026-02-28 13:53,Billing,P3,Bug,false,56.1,3

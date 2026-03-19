@@ -1,36 +1,321 @@
-user_id,signup_date,trial_start_date,trial_end_date,converted_date,plan,mrr,churned_date,acquisition_channel,company_size
-USR-001,2025-07-01,2025-07-01,2025-07-15,2025-07-16,pro,99,2025-10-20,organic,11-50
-USR-002,2025-07-03,2025-07-03,2025-07-17,,,,organic,1-10
-USR-003,2025-07-05,2025-07-05,2025-07-19,2025-07-20,starter,29,,paid_search,1-10
-USR-004,2025-07-08,2025-07-08,2025-07-22,2025-07-23,enterprise,499,,sales,201-500
-USR-005,2025-07-10,2025-07-10,2025-07-24,,,,organic,51-200
-USR-006,2025-07-12,2025-07-12,2025-07-26,2025-07-27,pro,99,2025-11-15,referral,11-50
-USR-007,2025-07-15,2025-07-15,2025-07-29,2025-07-30,starter,29,,paid_social,1-10
-USR-008,2025-07-18,2025-07-18,2025-08-01,2025-08-02,pro,99,,paid_search,51-200
-USR-009,2025-07-21,2025-07-21,2025-08-04,,,,organic,1-10
-USR-010,2025-07-24,2025-07-24,2025-08-07,2025-08-08,enterprise,499,,sales,201-500
-USR-011,2025-08-01,2025-08-01,2025-08-15,2025-08-16,starter,29,2025-10-01,organic,1-10
-USR-012,2025-08-04,2025-08-04,2025-08-18,2025-08-19,pro,99,,referral,11-50
-USR-013,2025-08-07,2025-08-07,2025-08-21,,,,paid_search,51-200
-USR-014,2025-08-10,2025-08-10,2025-08-24,2025-08-25,enterprise,499,,sales,501+
-USR-015,2025-08-13,2025-08-13,2025-08-27,2025-08-28,starter,29,,organic,1-10
-USR-016,2025-08-16,2025-08-16,2025-08-30,2025-08-31,pro,99,2025-12-01,paid_social,11-50
-USR-017,2025-08-20,2025-08-20,2025-09-03,,,,organic,1-10
-USR-018,2025-08-23,2025-08-23,2025-09-06,2025-09-07,pro,99,,referral,51-200
-USR-019,2025-09-01,2025-09-01,2025-09-15,2025-09-16,enterprise,499,,sales,201-500
-USR-020,2025-09-04,2025-09-04,2025-09-18,,,,paid_search,1-10
-USR-021,2025-09-07,2025-09-07,2025-09-21,2025-09-22,starter,29,,organic,1-10
-USR-022,2025-09-10,2025-09-10,2025-09-24,2025-09-25,pro,99,,paid_social,11-50
-USR-023,2025-09-13,2025-09-13,2025-09-27,,,,organic,51-200
-USR-024,2025-09-16,2025-09-16,2025-09-30,2025-10-01,enterprise,499,,sales,501+
-USR-025,2025-09-20,2025-09-20,2025-10-04,2025-10-05,starter,29,2025-12-15,referral,1-10
-USR-026,2025-10-01,2025-10-01,2025-10-15,2025-10-16,pro,99,,organic,11-50
-USR-027,2025-10-05,2025-10-05,2025-10-19,,,,paid_search,1-10
-USR-028,2025-10-09,2025-10-09,2025-10-23,2025-10-24,enterprise,499,,sales,201-500
-USR-029,2025-10-13,2025-10-13,2025-10-27,2025-10-28,starter,29,,organic,1-10
-USR-030,2025-10-17,2025-10-17,2025-10-31,2025-11-01,pro,99,,referral,51-200
-USR-031,2025-11-01,2025-11-01,2025-11-15,2025-11-16,pro,99,,paid_search,11-50
-USR-032,2025-11-05,2025-11-05,2025-11-19,,,,organic,1-10
-USR-033,2025-11-09,2025-11-09,2025-11-23,2025-11-24,enterprise,499,,sales,501+
-USR-034,2025-11-13,2025-11-13,2025-11-27,2025-11-28,starter,29,,paid_social,1-10
-USR-035,2025-11-17,2025-11-17,2025-12-01,2025-12-02,pro,99,,referral,51-200
+signup_date,acquisition_channel,plan,trial_started,converted_paid,churned,mrr
+2025-07-01,Organic,Starter,true,true,false,29
+2025-07-02,Social,,true,false,false,0
+2025-07-02,Referral,,true,false,false,0
+2025-07-06,Partner,Enterprise,true,true,false,499
+2025-07-07,Referral,,true,false,false,0
+2025-07-08,Organic,Pro,true,true,false,99
+2025-07-09,Referral,Pro,true,true,false,99
+2025-07-10,Organic,,true,false,false,0
+2025-07-11,Organic,Pro,true,true,true,99
+2025-07-12,Organic,,true,false,false,0
+2025-07-12,Organic,,true,false,false,0
+2025-07-13,Organic,Starter,true,true,false,29
+2025-07-14,Referral,,true,false,false,0
+2025-07-14,Referral,Starter,true,true,false,29
+2025-07-14,Organic,,true,false,false,0
+2025-07-16,Partner,,true,false,false,0
+2025-07-17,Organic,,true,false,false,0
+2025-07-18,Referral,,true,false,false,0
+2025-07-19,Organic,,true,false,false,0
+2025-07-20,Paid Search,,true,false,false,0
+2025-07-21,Organic,Starter,true,true,false,29
+2025-07-21,Referral,,true,false,false,0
+2025-07-22,Organic,Starter,true,true,false,29
+2025-07-22,Paid Search,Starter,true,true,false,29
+2025-07-22,Organic,,true,false,false,0
+2025-07-25,Organic,,true,false,false,0
+2025-07-26,Paid Search,Enterprise,true,true,false,499
+2025-07-28,Paid Search,Enterprise,true,true,false,499
+2025-07-28,Organic,,true,false,false,0
+2025-07-29,Social,,false,false,false,0
+2025-07-29,Partner,Starter,true,true,false,29
+2025-07-29,Referral,Starter,true,true,false,29
+2025-07-30,Organic,,true,false,false,0
+2025-07-30,Organic,,true,false,false,0
+2025-07-30,Organic,,true,false,false,0
+2025-07-31,Partner,,false,false,false,0
+2025-07-31,Partner,Pro,true,true,false,99
+2025-08-02,Referral,,true,false,false,0
+2025-08-03,Paid Search,Pro,true,true,false,99
+2025-08-04,Organic,,true,false,false,0
+2025-08-05,Organic,Enterprise,true,true,false,499
+2025-08-06,Partner,,true,false,false,0
+2025-08-07,Paid Search,Pro,true,true,false,99
+2025-08-08,Paid Search,,true,false,false,0
+2025-08-09,Paid Search,Starter,true,true,false,29
+2025-08-10,Referral,Enterprise,true,true,false,499
+2025-08-11,Referral,Starter,true,true,true,29
+2025-08-12,Organic,Pro,true,true,false,99
+2025-08-13,Referral,,false,false,false,0
+2025-08-14,Referral,,true,false,false,0
+2025-08-14,Organic,,true,false,false,0
+2025-08-14,Referral,Pro,true,true,false,99
+2025-08-15,Paid Search,Starter,true,true,false,29
+2025-08-16,Paid Search,,true,false,false,0
+2025-08-16,Referral,,true,false,false,0
+2025-08-17,Organic,,true,false,false,0
+2025-08-17,Referral,,true,false,false,0
+2025-08-18,Paid Search,Enterprise,true,true,true,499
+2025-08-19,Partner,,true,false,false,0
+2025-08-19,Referral,,true,false,false,0
+2025-08-20,Organic,,true,false,false,0
+2025-08-21,Organic,,false,false,false,0
+2025-08-21,Organic,,true,false,false,0
+2025-08-21,Referral,,true,false,false,0
+2025-08-22,Paid Search,Starter,true,true,false,29
+2025-08-23,Partner,Pro,true,true,true,99
+2025-08-24,Paid Search,Enterprise,true,true,false,499
+2025-08-24,Organic,Starter,true,true,false,29
+2025-08-25,Partner,Starter,true,true,false,29
+2025-08-26,Organic,,false,false,false,0
+2025-08-27,Organic,,true,false,false,0
+2025-08-27,Referral,,true,false,false,0
+2025-08-28,Paid Search,,true,false,false,0
+2025-08-28,Organic,Starter,true,true,false,29
+2025-08-28,Partner,,true,false,false,0
+2025-08-29,Paid Search,,true,false,false,0
+2025-08-29,Organic,,true,false,false,0
+2025-08-30,Referral,,true,false,false,0
+2025-08-30,Partner,Enterprise,true,true,false,499
+2025-08-31,Social,,true,false,false,0
+2025-09-01,Social,,true,false,false,0
+2025-09-02,Referral,,true,false,false,0
+2025-09-03,Referral,,true,false,false,0
+2025-09-03,Social,,true,false,false,0
+2025-09-06,Organic,Pro,true,true,false,99
+2025-09-06,Organic,,true,false,false,0
+2025-09-07,Referral,Starter,true,true,true,29
+2025-09-08,Organic,,true,false,false,0
+2025-09-08,Organic,Enterprise,true,true,true,499
+2025-09-08,Partner,Starter,true,true,true,29
+2025-09-09,Paid Search,Pro,true,true,false,99
+2025-09-10,Paid Search,Pro,true,true,false,99
+2025-09-11,Partner,,true,false,false,0
+2025-09-11,Referral,Starter,true,true,true,29
+2025-09-13,Referral,Starter,true,true,true,29
+2025-09-13,Paid Search,,false,false,false,0
+2025-09-14,Organic,Enterprise,true,true,false,499
+2025-09-15,Organic,,true,false,false,0
+2025-09-15,Organic,,true,false,false,0
+2025-09-16,Organic,,true,false,false,0
+2025-09-18,Paid Search,Starter,true,true,false,29
+2025-09-19,Organic,,true,false,false,0
+2025-09-20,Organic,Pro,true,true,false,99
+2025-09-22,Social,Enterprise,true,true,false,499
+2025-09-23,Referral,,true,false,false,0
+2025-09-23,Referral,,true,false,false,0
+2025-09-23,Partner,,true,false,false,0
+2025-09-24,Organic,,true,false,false,0
+2025-09-25,Referral,,true,false,false,0
+2025-09-26,Organic,,true,false,false,0
+2025-09-26,Organic,,true,false,false,0
+2025-09-26,Referral,Starter,true,true,true,29
+2025-09-27,Organic,,true,false,false,0
+2025-09-28,Referral,Pro,true,true,false,99
+2025-09-28,Paid Search,,false,false,false,0
+2025-09-28,Referral,Enterprise,true,true,false,499
+2025-09-29,Paid Search,,true,false,false,0
+2025-09-30,Referral,,true,false,false,0
+2025-10-01,Organic,Enterprise,true,true,true,499
+2025-10-02,Referral,Starter,true,true,false,29
+2025-10-03,Social,Pro,true,true,false,99
+2025-10-03,Referral,Starter,true,true,false,29
+2025-10-04,Referral,,true,false,false,0
+2025-10-06,Paid Search,,true,false,false,0
+2025-10-06,Paid Search,,true,false,false,0
+2025-10-06,Partner,Starter,true,true,false,29
+2025-10-07,Social,Pro,true,true,false,99
+2025-10-07,Paid Search,Pro,true,true,true,99
+2025-10-09,Organic,Pro,true,true,false,99
+2025-10-10,Social,,true,false,false,0
+2025-10-11,Paid Search,,true,false,false,0
+2025-10-12,Organic,Pro,true,true,false,99
+2025-10-13,Organic,,true,false,false,0
+2025-10-14,Paid Search,,true,false,false,0
+2025-10-15,Social,Starter,true,true,false,29
+2025-10-15,Referral,,true,false,false,0
+2025-10-16,Organic,,true,false,false,0
+2025-10-17,Referral,,false,false,false,0
+2025-10-18,Organic,,true,false,false,0
+2025-10-18,Social,,true,false,false,0
+2025-10-19,Paid Search,,true,false,false,0
+2025-10-19,Partner,Enterprise,true,true,false,499
+2025-10-19,Paid Search,,true,false,false,0
+2025-10-20,Referral,,true,false,false,0
+2025-10-20,Referral,Pro,true,true,false,99
+2025-10-21,Organic,,false,false,false,0
+2025-10-22,Organic,,true,false,false,0
+2025-10-22,Paid Search,,true,false,false,0
+2025-10-23,Paid Search,Starter,true,true,false,29
+2025-10-24,Partner,Starter,true,true,false,29
+2025-10-25,Social,,true,false,false,0
+2025-10-26,Partner,Starter,true,true,false,29
+2025-10-27,Paid Search,,true,false,false,0
+2025-10-30,Organic,,true,false,false,0
+2025-10-30,Organic,Pro,true,true,false,99
+2025-10-31,Social,Pro,true,true,false,99
+2025-10-31,Partner,,false,false,false,0
+2025-11-01,Social,Starter,true,true,false,29
+2025-11-01,Organic,,true,false,false,0
+2025-11-02,Referral,Pro,true,true,false,99
+2025-11-02,Organic,,true,false,false,0
+2025-11-03,Referral,,true,false,false,0
+2025-11-04,Organic,,false,false,false,0
+2025-11-05,Partner,Starter,true,true,false,29
+2025-11-05,Organic,,true,false,false,0
+2025-11-05,Paid Search,Pro,true,true,false,99
+2025-11-06,Social,,true,false,false,0
+2025-11-06,Referral,Starter,true,true,false,29
+2025-11-06,Paid Search,,true,false,false,0
+2025-11-08,Organic,,true,false,false,0
+2025-11-08,Partner,,true,false,false,0
+2025-11-10,Organic,,true,false,false,0
+2025-11-10,Referral,,true,false,false,0
+2025-11-11,Organic,,true,false,false,0
+2025-11-11,Referral,Pro,true,true,false,99
+2025-11-14,Referral,,true,false,false,0
+2025-11-15,Social,,true,false,false,0
+2025-11-15,Referral,,true,false,false,0
+2025-11-16,Paid Search,,true,false,false,0
+2025-11-16,Partner,Starter,true,true,true,29
+2025-11-18,Social,Starter,true,true,false,29
+2025-11-18,Social,Starter,true,true,false,29
+2025-11-19,Social,Pro,true,true,false,99
+2025-11-19,Paid Search,Starter,true,true,false,29
+2025-11-20,Organic,,true,false,false,0
+2025-11-21,Paid Search,Pro,true,true,false,99
+2025-11-22,Paid Search,,true,false,false,0
+2025-11-22,Organic,,false,false,false,0
+2025-11-23,Paid Search,,true,false,false,0
+2025-11-23,Referral,,true,false,false,0
+2025-11-24,Partner,,true,false,false,0
+2025-11-25,Referral,,true,false,false,0
+2025-11-25,Organic,Enterprise,true,true,false,499
+2025-11-26,Social,Pro,true,true,false,99
+2025-11-26,Referral,,true,false,false,0
+2025-11-27,Referral,,true,false,false,0
+2025-11-28,Organic,,true,false,false,0
+2025-11-29,Partner,,true,false,false,0
+2025-11-29,Organic,,true,false,false,0
+2025-11-30,Organic,,true,false,false,0
+2025-12-01,Organic,,true,false,false,0
+2025-12-01,Referral,,false,false,false,0
+2025-12-03,Paid Search,,true,false,false,0
+2025-12-03,Organic,,false,false,false,0
+2025-12-03,Organic,,true,false,false,0
+2025-12-04,Paid Search,,false,false,false,0
+2025-12-04,Referral,Starter,true,true,false,29
+2025-12-05,Social,Pro,true,true,false,99
+2025-12-05,Referral,,true,false,false,0
+2025-12-06,Organic,Starter,true,true,true,29
+2025-12-06,Paid Search,,true,false,false,0
+2025-12-08,Paid Search,,true,false,false,0
+2025-12-09,Organic,,true,false,false,0
+2025-12-09,Paid Search,Starter,true,true,false,29
+2025-12-10,Organic,Pro,true,true,false,99
+2025-12-10,Partner,,true,false,false,0
+2025-12-11,Referral,Pro,true,true,false,99
+2025-12-12,Organic,Pro,true,true,false,99
+2025-12-12,Organic,Starter,true,true,false,29
+2025-12-13,Organic,,false,false,false,0
+2025-12-13,Paid Search,,true,false,false,0
+2025-12-14,Social,Enterprise,true,true,false,499
+2025-12-15,Referral,,true,false,false,0
+2025-12-15,Referral,,true,false,false,0
+2025-12-16,Paid Search,Pro,true,true,false,99
+2025-12-17,Organic,,true,false,false,0
+2025-12-18,Organic,Pro,true,true,true,99
+2025-12-19,Paid Search,Starter,true,true,false,29
+2025-12-20,Referral,Pro,true,true,false,99
+2025-12-21,Organic,,true,false,false,0
+2025-12-21,Partner,,true,false,false,0
+2025-12-22,Social,Pro,true,true,true,99
+2025-12-25,Organic,Starter,true,true,false,29
+2025-12-26,Organic,Enterprise,true,true,false,499
+2025-12-26,Organic,Pro,true,true,false,99
+2025-12-27,Paid Search,,true,false,false,0
+2025-12-27,Partner,,true,false,false,0
+2025-12-28,Organic,Starter,true,true,false,29
+2025-12-28,Social,,true,false,false,0
+2025-12-29,Paid Search,Pro,true,true,true,99
+2025-12-29,Organic,,true,false,false,0
+2025-12-31,Social,Pro,true,true,false,99
+2025-12-31,Organic,,false,false,false,0
+2026-01-01,Paid Search,,true,false,false,0
+2026-01-01,Social,,true,false,false,0
+2026-01-02,Partner,Starter,true,true,true,29
+2026-01-04,Social,Pro,true,true,false,99
+2026-01-04,Paid Search,,true,false,false,0
+2026-01-05,Paid Search,,true,false,false,0
+2026-01-06,Social,,true,false,false,0
+2026-01-07,Referral,,true,false,false,0
+2026-01-08,Referral,Pro,true,true,false,99
+2026-01-08,Partner,,true,false,false,0
+2026-01-09,Referral,,false,false,false,0
+2026-01-10,Partner,Starter,true,true,false,29
+2026-01-10,Paid Search,,false,false,false,0
+2026-01-11,Paid Search,Enterprise,true,true,false,499
+2026-01-12,Referral,Starter,true,true,false,29
+2026-01-13,Paid Search,Enterprise,true,true,false,499
+2026-01-13,Partner,,true,false,false,0
+2026-01-14,Paid Search,,true,false,false,0
+2026-01-15,Paid Search,,true,false,false,0
+2026-01-16,Paid Search,,true,false,false,0
+2026-01-18,Organic,,true,false,false,0
+2026-01-19,Referral,Starter,true,true,false,29
+2026-01-20,Partner,,true,false,false,0
+2026-01-21,Organic,,true,false,false,0
+2026-01-21,Paid Search,Starter,true,true,true,29
+2026-01-22,Referral,Starter,true,true,false,29
+2026-01-23,Organic,,true,false,false,0
+2026-01-23,Referral,Pro,true,true,false,99
+2026-01-24,Social,Starter,true,true,true,29
+2026-01-26,Paid Search,Pro,true,true,false,99
+2026-01-27,Referral,Pro,true,true,false,99
+2026-01-27,Organic,,true,false,false,0
+2026-01-27,Organic,,true,false,false,0
+2026-01-28,Organic,Pro,true,true,false,99
+2026-01-28,Referral,Enterprise,true,true,false,499
+2026-01-28,Referral,Starter,true,true,false,29
+2026-01-29,Paid Search,Starter,true,true,false,29
+2026-01-29,Organic,Starter,true,true,false,29
+2026-01-29,Paid Search,Starter,true,true,false,29
+2026-01-30,Paid Search,Starter,true,true,true,29
+2026-01-31,Organic,,true,false,false,0
+2026-01-31,Organic,,true,false,false,0
+2026-02-01,Organic,Pro,true,true,false,99
+2026-02-02,Referral,,true,false,false,0
+2026-02-03,Paid Search,Starter,true,true,false,29
+2026-02-05,Organic,,true,false,false,0
+2026-02-05,Referral,,true,false,false,0
+2026-02-06,Organic,Pro,true,true,false,99
+2026-02-06,Organic,Starter,true,true,false,29
+2026-02-06,Organic,,true,false,false,0
+2026-02-07,Social,,true,false,false,0
+2026-02-07,Referral,Pro,true,true,false,99
+2026-02-07,Paid Search,,true,false,false,0
+2026-02-08,Organic,,true,false,false,0
+2026-02-08,Referral,,true,false,false,0
+2026-02-09,Referral,,true,false,false,0
+2026-02-10,Referral,,true,false,false,0
+2026-02-11,Organic,Starter,true,true,false,29
+2026-02-12,Referral,,true,false,false,0
+2026-02-12,Paid Search,Pro,true,true,false,99
+2026-02-13,Organic,Starter,true,true,false,29
+2026-02-14,Organic,,true,false,false,0
+2026-02-14,Organic,,true,false,false,0
+2026-02-14,Organic,,true,false,false,0
+2026-02-15,Organic,,true,false,false,0
+2026-02-16,Paid Search,Starter,true,true,false,29
+2026-02-16,Partner,,true,false,false,0
+2026-02-17,Social,,true,false,false,0
+2026-02-18,Referral,,true,false,false,0
+2026-02-18,Paid Search,,true,false,false,0
+2026-02-19,Paid Search,Starter,true,true,false,29
+2026-02-20,Referral,Pro,true,true,false,99
+2026-02-20,Social,Starter,true,true,false,29
+2026-02-21,Paid Search,,true,false,false,0
+2026-02-23,Organic,,true,false,false,0
+2026-02-26,Social,,false,false,false,0
+2026-02-28,Referral,,true,false,false,0

@@ -1,120 +1,90 @@
 name: retail_sales
 dataset: retail_sales
 description: >
-  Retail order analytics for a direct-to-consumer business.
-  Covers revenue, order volume, average order value, and customer activity
-  across product categories and regions.
-
-grain: "one row = one order line item"
+  Retail order analytics covering revenue, cost, and margin across product
+  categories, regions, and sales channels. One row per order line.
+grain: one row per order line
 time_column: order_date
 
 metrics:
   - name: revenue
-    description: "Total value of completed orders (excludes cancelled and returned orders)"
-    expression: "SUM(order_total)"
+    description: Total gross revenue across all orders
+    expression: SUM(revenue)
+    aliases: [sales, total_revenue, gross_revenue, total_sales, income]
     format: currency
-    default_aggregation: sum
-    filters:
-      - column: status
-        operator: "="
-        value: "completed"
-    aliases:
-      - sales
-      - total revenue
-      - net revenue
 
-  - name: order_count
-    description: "Number of completed orders"
-    expression: "COUNT(DISTINCT order_id)"
-    format: number
-    default_aggregation: count
-    filters:
-      - column: status
-        operator: "="
-        value: "completed"
-    aliases:
-      - orders
-      - number of orders
-      - completed orders
-
-  - name: aov
-    description: "Average order value — revenue divided by number of completed orders"
-    expression: "SUM(order_total) / NULLIF(COUNT(DISTINCT order_id), 0)"
+  - name: cost
+    description: Total cost of goods sold
+    expression: SUM(cost)
+    aliases: [cogs, total_cost]
     format: currency
-    default_aggregation: sum
-    filters:
-      - column: status
-        operator: "="
-        value: "completed"
-    aliases:
-      - average order value
-      - average basket size
+
+  - name: margin
+    description: Total gross margin (revenue minus cost)
+    expression: SUM(margin)
+    aliases: [gross_margin, profit, total_margin, gross_profit]
+    format: currency
+
+  - name: margin_rate
+    description: Gross margin as a percentage of revenue
+    expression: SUM(margin) / NULLIF(SUM(revenue), 0) * 100
+    aliases: [margin_pct, margin_percent, gross_margin_rate, margin_percentage, profitability]
+    format: percent
 
   - name: units_sold
-    description: "Total quantity of items sold across completed orders"
-    expression: "SUM(quantity)"
-    format: number
-    default_aggregation: sum
-    filters:
-      - column: status
-        operator: "="
-        value: "completed"
+    description: Total units sold across all orders
+    expression: SUM(units)
+    aliases: [units, quantity, total_units, items_sold]
+
+  - name: order_count
+    description: Number of individual orders
+    expression: COUNT(*)
+    aliases: [orders, number_of_orders, total_orders, order_volume]
+
+  - name: aov
+    description: Average order value — revenue per order
+    expression: SUM(revenue) / NULLIF(COUNT(*), 0)
+    aliases: [average_order_value, avg_order_value, average_order, basket_size]
+    format: currency
 
 dimensions:
-  - name: product_category
-    column: product_category
-    description: "High-level product grouping (Electronics, Apparel, Home, etc.)"
-    aliases:
-      - category
-      - product type
+  - name: product
+    column: product
+    description: Product category
+    aliases: [product_category, category, product_type, item]
+    values: [Electronics, Apparel, Home, Sports, Beauty]
 
   - name: region
     column: region
-    description: "Geographic sales region"
-    aliases:
-      - geography
-      - area
+    description: Sales region
+    aliases: [geo, geography, area, location]
+    values: [North, South, East, West]
+
+  - name: channel
+    column: channel
+    description: Sales channel through which the order was placed
+    aliases: [sales_channel, order_channel, medium]
+    values: [Online, In-Store, Wholesale]
 
   - name: order_date
     column: order_date
-    description: "Date the order was placed"
+    description: Date the order was placed
+    aliases: [date, day, order_day, transaction_date]
     is_date: true
-    aliases:
-      - date
-      - day
-
-  - name: status
-    column: status
-    description: "Order status (completed, cancelled, returned, pending)"
-    values:
-      - completed
-      - cancelled
-      - returned
-      - pending
 
 synonyms:
-  - phrase: "sales"
-    maps_to: "metric:revenue"
-  - phrase: "total sales"
-    maps_to: "metric:revenue"
-  - phrase: "basket size"
-    maps_to: "metric:aov"
-  - phrase: "orders"
-    maps_to: "metric:order_count"
-  - phrase: "category"
-    maps_to: "dimension:product_category"
-
-business_rules:
-  - name: completed_only
-    description: "Always filter to completed orders unless the user explicitly asks for other statuses"
-    filter: "status = 'completed'"
-    applies_to:
-      - metric:revenue
-      - metric:order_count
-      - metric:aov
-      - metric:units_sold
+  - phrase: top selling
+    maps_to: revenue
+  - phrase: best performing
+    maps_to: revenue
+  - phrase: gross profit
+    maps_to: margin
+  - phrase: profitability
+    maps_to: margin_rate
+  - phrase: store
+    maps_to: channel
 
 caveats:
-  - "Refunds are not deducted from revenue. Revenue reflects gross order value at time of purchase."
-  - "order_total includes shipping and tax."
-  - "Data is refreshed daily. Same-day orders may not be present."
+  - Revenue is gross revenue — returns and cancellations are NOT netted out in this dataset.
+  - Margin is pre-calculated as revenue - cost at order time and does not reflect post-sale adjustments.
+  - Online channel includes both web and mobile app orders.

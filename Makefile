@@ -2,21 +2,30 @@
 SHELL         := /bin/bash
 API_DIR       := apps/api
 WEB_DIR       := apps/web
+PYTHON        := $(API_DIR)/.venv/bin/python3
+PYTEST        := $(PYTHON) -m pytest
+CLI           := $(PYTHON) -m cli.main
 
-.PHONY: help up down logs build test test-coverage lint lint-fix validate seed health clean
+.PHONY: help up down logs build \
+        test test-api test-coverage test-e2e test-eval \
+        lint lint-fix typecheck validate \
+        generate-data seed seed-reset \
+        health status \
+        cli-ingest cli-ask \
+        clean clean-data
 
 help: ## Show available targets
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | \
-		awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-18s\033[0m %s\n", $$1, $$2}'
+		awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
 
 # ── Docker ────────────────────────────────────────────────────────────────────
 
 up: ## Start all services (detached)
 	docker compose up -d
 	@echo ""
-	@echo "  Web UI  → http://localhost:3000"
-	@echo "  API     → http://localhost:8000"
-	@echo "  API docs→ http://localhost:8000/api/docs"
+	@echo "  Web UI   → http://localhost:3000"
+	@echo "  API      → http://localhost:8000"
+	@echo "  API docs → http://localhost:8000/api/docs"
 	@echo ""
 	@echo "Run 'make logs' to follow service output."
 
@@ -37,39 +46,55 @@ logs-web: ## Tail web logs only
 
 # ── Health ────────────────────────────────────────────────────────────────────
 
-health: ## Check API health endpoint
+health: ## Check API health endpoint (raw JSON)
 	@curl -sf http://localhost:8000/api/health | python3 -m json.tool || \
 		(echo "API is not responding. Run 'make up' first." && exit 1)
 
+status: ## Check API status via CLI (coloured output)
+	$(CLI) status
+
 # ── Testing ───────────────────────────────────────────────────────────────────
 
-test: ## Run the full test suite
-	@echo "Running backend tests..."
-	cd $(API_DIR) && python -m pytest tests/ -v --tb=short
+test: ## Run unit + integration + eval tests (no API key or server needed)
+	@echo "── Unit tests ─────────────────────────────────────────────────────"
+	$(PYTEST) tests/unit/ -q --tb=short
 	@echo ""
-	@echo "Running integration tests..."
-	python -m pytest tests/ -v --tb=short
+	@echo "── Integration tests ──────────────────────────────────────────────"
+	$(PYTEST) tests/integration/ -q --tb=short
+	@echo ""
+	@echo "── Eval suite ─────────────────────────────────────────────────────"
+	$(PYTEST) evals/test_evals.py -q --tb=short
 
-test-coverage: ## Run tests with coverage report
-	cd $(API_DIR) && python -m pytest tests/ -v --cov=. --cov-report=html --cov-report=term-missing
+test-api: ## Run API-level tests (no running server needed)
+	cd $(API_DIR) && .venv/bin/python3 -m pytest tests/ -v --tb=short
+
+test-coverage: ## Run API tests with HTML coverage report
+	cd $(API_DIR) && .venv/bin/python3 -m pytest tests/ -v \
+		--cov=. --cov-report=html --cov-report=term-missing
 	@echo "Coverage report: $(API_DIR)/htmlcov/index.html"
 
-test-e2e: ## Run Playwright end-to-end tests
-	cd $(WEB_DIR) && npx playwright test
+test-e2e: ## Run Playwright end-to-end tests (requires make up)
+	cd $(WEB_DIR) && npx playwright test --config=../tests/e2e/playwright.config.ts
+
+typecheck: ## Run TypeScript type checks
+	cd $(WEB_DIR) && npm run typecheck
+
+test-eval: ## Run live question evaluations (requires make up && make seed)
+	$(PYTEST) tests/test_demo_questions.py -v --tb=short
 
 # ── Linting ───────────────────────────────────────────────────────────────────
 
 lint: ## Run all linters (Python + TypeScript)
-	@echo "Linting Python..."
+	@echo "Linting Python (api)..."
 	cd $(API_DIR) && ruff check . && ruff format --check .
-	@echo "Linting packages..."
-	ruff check packages/
+	@echo "Linting Python (packages, cli)..."
+	ruff check packages/ cli/
 	@echo "Linting TypeScript..."
 	cd $(WEB_DIR) && npm run lint
 
 lint-fix: ## Auto-fix lint issues where possible
 	cd $(API_DIR) && ruff check --fix . && ruff format .
-	ruff check --fix packages/ && ruff format packages/
+	ruff check --fix packages/ cli/ && ruff format packages/ cli/
 	cd $(WEB_DIR) && npm run lint -- --fix
 
 # ── Semantic Model ────────────────────────────────────────────────────────────
@@ -77,23 +102,31 @@ lint-fix: ## Auto-fix lint issues where possible
 validate: ## Validate all semantic models in examples/
 	@for f in examples/*/semantic_model.yml; do \
 		echo "Validating $$f..."; \
-		python -m packages.semantic_model.validator $$f || exit 1; \
+		$(PYTHON) -m packages.semantic_model.validator $$f || exit 1; \
 	done
 	@echo "All semantic models valid."
 
 # ── Sample Data ───────────────────────────────────────────────────────────────
 
-seed: ## Upload sample datasets to a running API
-	@echo "Seeding sample datasets..."
+generate-data: ## Regenerate sample CSVs from scratch (deterministic, seed=42)
+	python3 sample_data/generate.py
+
+seed: ## Upload sample CSVs + create semantic models (API must be running)
+	@echo "Seeding demo datasets and semantic models..."
 	@curl -sf http://localhost:8000/api/health > /dev/null || \
 		(echo "API is not running. Run 'make up' first." && exit 1)
-	curl -s -X POST http://localhost:8000/api/datasets \
-		-F "file=@sample_data/retail_sales.csv" | python3 -m json.tool
-	curl -s -X POST http://localhost:8000/api/datasets \
-		-F "file=@sample_data/support_tickets.csv" | python3 -m json.tool
-	curl -s -X POST http://localhost:8000/api/datasets \
-		-F "file=@sample_data/saas_funnel.csv" | python3 -m json.tool
-	@echo "Done. Open http://localhost:3000 to explore."
+	python3 scripts/seed_demo.py
+
+seed-reset: ## Re-seed from scratch, replacing existing semantic models
+	python3 scripts/seed_demo.py --reset
+
+# ── CLI shortcuts ─────────────────────────────────────────────────────────────
+
+cli-datasets: ## List all uploaded datasets
+	$(CLI) datasets
+
+cli-status: ## Show API status via CLI
+	$(CLI) status
 
 # ── Cleanup ───────────────────────────────────────────────────────────────────
 

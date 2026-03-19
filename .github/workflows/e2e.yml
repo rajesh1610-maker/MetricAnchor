@@ -1,0 +1,122 @@
+name: E2E Smoke Tests
+
+# Run on every push to main and on demand.
+# Not run on every PR — Docker compose builds are slow.
+# Open a PR comment to trigger manually if you need E2E verification before merge.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: e2e-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  playwright:
+    name: Playwright smoke tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # Python is needed to generate sample data and run the seed script.
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: apps/api/requirements.txt
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: apps/web/package-lock.json
+
+      # ── Create a minimal .env for Docker ──────────────────────────────────
+      # Stub mode: no LLM API key required.
+      - name: Create .env
+        run: |
+          cat > .env << 'EOF'
+          LLM_PROVIDER=openai
+          LLM_API_KEY=
+          LLM_MODEL=gpt-4o
+          DATA_DIR=/data
+          DATABASE_URL=sqlite+aiosqlite:////data/metricanchor.db
+          CORS_ORIGINS=http://localhost:3000
+          API_DEBUG=false
+          LOG_LEVEL=INFO
+          LOG_FORMAT=json
+          EOF
+
+      # ── Build and start services ───────────────────────────────────────────
+      - name: Build Docker images
+        run: docker compose build
+
+      - name: Start services
+        run: docker compose up -d
+
+      # ── Wait for the API to become healthy ────────────────────────────────
+      - name: Wait for API health
+        run: |
+          echo "Waiting for API to become healthy..."
+          for i in $(seq 1 36); do
+            if curl -sf http://localhost:8000/api/health > /dev/null 2>&1; then
+              echo "API is healthy after $((i * 5))s"
+              exit 0
+            fi
+            echo "  attempt $i/36 — waiting 5s..."
+            sleep 5
+          done
+          echo "API did not become healthy within 3 minutes"
+          docker compose logs api
+          exit 1
+
+      # ── Seed demo data ─────────────────────────────────────────────────────
+      - name: Install Python dependencies
+        run: pip install -r apps/api/requirements.txt
+
+      - name: Generate sample CSVs
+        run: python3 sample_data/generate.py
+
+      - name: Seed demo datasets and semantic models
+        env:
+          PYTHONPATH: ${{ github.workspace }}
+        run: python3 scripts/seed_demo.py
+
+      # ── Install Playwright ─────────────────────────────────────────────────
+      - name: Install Node dependencies (for Playwright)
+        working-directory: apps/web
+        run: npm ci
+
+      - name: Install Playwright browser
+        working-directory: apps/web
+        run: npx playwright install chromium --with-deps
+
+      # ── Run smoke tests ────────────────────────────────────────────────────
+      - name: Run Playwright smoke tests
+        working-directory: apps/web
+        run: npx playwright test --config ../tests/e2e/playwright.config.ts
+
+      # ── Collect artifacts on failure ───────────────────────────────────────
+      - name: Upload Playwright report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-${{ github.run_id }}
+          path: tests/e2e/report/
+          retention-days: 7
+
+      - name: Upload failure screenshots
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-screenshots-${{ github.run_id }}
+          path: tests/e2e/report/
+          retention-days: 7
+
+      # ── Always tear down ───────────────────────────────────────────────────
+      - name: Stop services
+        if: always()
+        run: docker compose down -v

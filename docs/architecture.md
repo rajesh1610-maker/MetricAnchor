@@ -1,239 +1,211 @@
 # MetricAnchor — Architecture
 
-**Version:** 1.0 (Phase 1)
+**Version:** 2.0 (Phase 8)
 **Last Updated:** 2026-03-19
-
----
 
 ## Overview
 
-MetricAnchor is a local-first AI analytics copilot. Its architecture separates four concerns into distinct layers with clean interfaces:
+MetricAnchor is a **trust-first analytics copilot**. Users ask natural-language questions against their data; the system returns the answer alongside the exact SQL, how every business term was resolved, what assumptions were made, and a confidence score.
 
-1. **Ingest** — file upload, schema profiling, DuckDB registration
-2. **Semantic modeling** — YAML definitions of business concepts, validated against a JSON schema
-3. **Q&A engine** — LLM-generated SQL, grounded against the schema and semantic model, executed in DuckDB
-4. **Trust output** — every answer includes SQL, term mappings, assumptions, and a confidence level
-
-No layer has a hard dependency on another layer's internals. Each is independently testable.
+The key design principle: **the LLM never writes SQL**. SQL is generated deterministically from a semantic model by code. The LLM is used only to parse intent and format the final answer.
 
 ---
 
-## System Diagram
+## System Components
 
 ```
-┌────────────────────────────────────────────────────────────────┐
-│                      Browser (Next.js)                          │
-│                                                                  │
-│  ┌──────────┐  ┌──────────┐  ┌─────────────┐  ┌────────────┐  │
-│  │ Upload   │  │ Ask      │  │ Trust Panel │  │ Semantic   │  │
-│  │ Dataset  │  │ Question │  │ SQL · Terms │  │ Model      │  │
-│  │          │  │          │  │ Assumptions │  │ Editor     │  │
-│  └────┬─────┘  └────┬─────┘  └─────────────┘  └────────────┘  │
-└───────┼─────────────┼────────────────────────────────────────────┘
-        │ HTTP/JSON   │ HTTP/JSON
-        ▼             ▼
-┌────────────────────────────────────────────────────────────────┐
-│                     FastAPI Application                         │
-│                                                                  │
-│  POST /api/datasets          GET /api/datasets/{id}             │
-│  POST /api/questions         GET /api/questions                 │
-│  POST /api/semantic_models   GET /api/semantic_models/{id}      │
-│  POST /api/questions/{id}/feedback                              │
-│                                                                  │
-│  ┌───────────────────────────────────────────────────────────┐  │
-│  │                      Services                             │  │
-│  │                                                           │  │
-│  │  IngestService      QuestionService    FeedbackService    │  │
-│  │  SchemaProfiler     SemanticResolver   ConfidenceScorer   │  │
-│  └──────┬────────────────────┬────────────────────────────┘  │
-│         │                    │                                   │
-│  ┌──────▼──────┐    ┌────────▼──────────────────────────────┐  │
-│  │  packages/  │    │  packages/                            │  │
-│  │  query_     │    │  llm_adapter/                         │  │
-│  │  engine/    │    │                                       │  │
-│  │  (DuckDB)   │    │  LLMAdapter (abstract)                │  │
-│  └─────────────┘    │  ├── OpenAIAdapter                   │  │
-│                     │  ├── AnthropicAdapter                │  │
-│  ┌──────────────┐   │  └── OpenAICompatibleAdapter         │  │
-│  │  packages/   │   │       (Ollama, LM Studio, etc.)      │  │
-│  │  semantic_   │   └───────────────────────────────────────┘  │
-│  │  model/      │                                               │
-│  │  Validator   │                                               │
-│  │  Resolver    │                                               │
-│  └──────────────┘                                               │
-│                                                                  │
-│  ┌────────────────────────────────────────────────────────────┐ │
-│  │  SQLite  (datasets · semantic_models · questions · feedback)│ │
-│  └────────────────────────────────────────────────────────────┘ │
-└────────────────────────────────────────────────────────────────┘
-
-External (optional, configured via .env):
-  OpenAI API  /  Anthropic API  /  Local Ollama
+┌──────────────────────────────────────────────────────────┐
+│                        Browser                           │
+│   Next.js 14 App Router  (apps/web/src/)                │
+│   Ask · Datasets · Semantic Models · History             │
+└───────────────────┬──────────────────────────────────────┘
+                    │ HTTP (JSON)
+┌───────────────────▼──────────────────────────────────────┐
+│                    FastAPI API  (apps/api/)               │
+│                                                          │
+│  Routers:  /datasets  /semantic_models  /questions       │
+│            /health                                       │
+│                                                          │
+│  Services: IngestService  QuestionService                │
+│            SemanticModelService                          │
+│                                                          │
+│  Storage:  SQLite (metadata)  ·  DuckDB (queries)        │
+│            Uploads dir (raw files)                       │
+└───────┬──────────────────────────┬───────────────────────┘
+        │                          │
+┌───────▼──────────┐  ┌────────────▼───────────────────────┐
+│  packages/       │  │  packages/                         │
+│  llm_adapter     │  │  semantic_model/                   │
+│  (OpenAI /       │  │    validator.py  resolver.py       │
+│   Anthropic /    │  │  query_engine/                     │
+│   stub)          │  │    pipeline.py   engine.py         │
+└──────────────────┘  └────────────────────────────────────┘
 ```
 
 ---
 
-## Directory Structure
+## Request Flow — Asking a Question
 
 ```
-metricanchor/
-├── apps/
-│   ├── api/                  FastAPI application
-│   │   ├── main.py           App entry point, middleware, router mounting
-│   │   ├── routers/          One file per resource (datasets, questions, etc.)
-│   │   ├── services/         Business logic (ingest, Q&A, feedback)
-│   │   ├── models/           SQLAlchemy ORM models
-│   │   ├── schemas/          Pydantic request/response schemas
-│   │   ├── db.py             SQLite session factory
-│   │   ├── config.py         Settings from environment variables
-│   │   └── tests/            pytest unit + integration tests
-│   │
-│   └── web/                  Next.js 14 (App Router) frontend
-│       └── src/app/          Pages and layouts
-│
-├── packages/
-│   ├── semantic_model/       YAML format + JSON schema + validator + resolver
-│   ├── query_engine/         DuckDB connector, query runner, result formatter
-│   ├── llm_adapter/          Provider-agnostic LLM interface + adapters
-│   └── shared/               Common types, exceptions, logging helpers
-│
-├── examples/                 Sample semantic model YAMLs with READMEs
-├── sample_data/              Demo CSVs (retail, support, SaaS)
-├── tests/                    End-to-end integration tests (full stack)
-└── docs/                     Architecture, roadmap, connector guide
-```
+POST /api/questions
+  { "question": "revenue by region last month", "dataset_id": "…" }
 
----
+  1. QuestionService.ask()
+     ├── load Dataset (SQLite)
+     ├── load SemanticModel (SQLite)
+     └── execute_pipeline(question, view_name, model_def, engine, llm)
 
-## Data Flow: Answering a Question
+         Step 1  question_parser
+         ├── if llm.is_stub → _parse_stub()   (regex-based, zero latency)
+         └── else           → _parse_with_llm()  (LLM JSON extraction)
+               → ParsedIntent { question_type, candidate_terms,
+                                time_expression, explicit_group_by,
+                                limit, sort_direction }
 
-```
-User types: "What was revenue by category last quarter?"
-                    │
-                    ▼
-        QuestionService.ask(question, dataset_id)
-                    │
-         ┌──────────┴──────────┐
-         │                     │
-  Load schema profile    Load semantic model
-  from SQLite            YAML from SQLite
-         │                     │
-         └──────────┬──────────┘
-                    │
-         PromptBuilder.build(schema, model, question)
-                    │   → Structured prompt with:
-                    │     - Table schema (columns, types)
-                    │     - Semantic definitions (revenue = ...)
-                    │     - Question
-                    │
-                    ▼
-           LLMAdapter.complete(prompt)
-                    │   → Raw LLM response
-                    │
-                    ▼
-           SQLParser.extract(response)
-                    │   → Validated SQL string
-                    │
-                    ▼
-           QueryEngine.run(sql, dataset)
-                    │   → Result rows (DuckDB)
-                    │
-                    ▼
-           TrustBuilder.build(response, sql, model)
-                    │   → {sql, assumptions, term_mappings, confidence}
-                    │
-                    ▼
-       API returns QuestionResponse to the browser
+         Step 2  semantic_mapper
+         └── _map_intent()
+               → maps candidate_terms → TermMapping (metric / dimension)
+               → via: exact | alias | synonym | default
+               → MappingResult { resolved_metrics, resolved_dimensions,
+                                  unmapped, needs_clarification }
+
+         Step 3  time_resolver
+         └── _parse_time_expression("last month", today)
+               → TimeRange { start: "2026-02-01", end: "2026-03-01" }
+
+         Step 4  sql_generator
+         └── _generate_sql()  — template-based, NEVER LLM
+               SELECT <metric_exprs>
+               FROM   "<view_name>"
+               WHERE  <time_filter> AND <business_rules>
+               GROUP BY <dimensions>
+               ORDER BY <first_metric> DESC
+               LIMIT <n>
+
+         Step 5  sql_validator
+         └── _validate_sql_static()  — deny-list: DROP, DELETE, INSERT …
+             + DuckDB EXPLAIN (syntax check)
+
+         Step 6  execution_engine
+         └── engine.run(sql)  → (columns, rows)
+
+         Step 7  answer_formatter
+         ├── if llm.is_stub → _format_stub()
+         └── else           → _format_with_llm()  (max 10 rows sent to LLM)
+
+         Step 8  provenance_builder
+         └── assemble PipelineResult with:
+               sql, columns, rows, chart_type, semantic_mappings,
+               assumptions, caveats, confidence, confidence_note,
+               provenance (all step outputs), execution_ms
+
+  2. Question persisted to SQLite
+  3. QuestionResponse returned (mirrors PipelineResult + id, created_at)
 ```
 
 ---
 
-## Key Design Decisions
+## Data Flow — Ingesting a Dataset
 
-### DuckDB for query execution
-
-DuckDB is an in-process analytical database. It reads CSV and Parquet files natively, runs fast aggregations, and requires zero infrastructure. In V1, there is no separate database server — DuckDB runs embedded in the API process. This means:
-- `make up` starts two containers (API and web), not three or four.
-- There is no schema migration step for the analytics layer.
-- DuckDB files are stored in the data volume alongside uploaded CSV/Parquet files.
-
-Trade-off: DuckDB is single-writer. For V1 (single-user, local), this is fine. Multi-user deployments would need a different query engine.
-
-### SQLite for metadata
-
-Datasets, semantic models, questions, and feedback are stored in SQLite via SQLAlchemy. This keeps the metadata layer simple and eliminates another service dependency. SQLite performs well for the low-concurrency workload of a local analytics tool.
-
-### YAML semantic models
-
-Semantic models are stored in both the database (for the API to query quickly) and optionally in YAML files on disk (for version control). The YAML format is the source of truth for contributors. The JSON schema at `packages/semantic_model/schema.json` validates every model before it is accepted.
-
-### Provider-agnostic LLM adapter
-
-The `LLMAdapter` abstract class defines a single interface: `complete(prompt: str) -> str`. All provider-specific details (API keys, request format, retry logic, error handling) live inside the concrete adapter. The application code never imports an OpenAI or Anthropic SDK directly — only the adapter does.
-
-This makes it straightforward to:
-- Swap providers by changing one environment variable
-- Add a new adapter without touching the Q&A engine
-- Mock the adapter in tests without a live API key
-
-### Trust output is mandatory
-
-The `TrustBuilder` always runs. The API schema for `QuestionResponse` requires `sql`, `assumptions`, `term_mappings`, and `confidence` — they are not optional fields. If the LLM fails to produce parseable SQL, the response returns `confidence: "unsure"` with an explanation, not a fabricated answer.
-
----
-
-## Package Interfaces
-
-### `packages/query_engine`
-
-```python
-class QueryEngine:
-    def register_dataset(self, name: str, file_path: str) -> DatasetProfile: ...
-    def run(self, sql: str, dataset_name: str) -> QueryResult: ...
-    def profile(self, dataset_name: str) -> DatasetProfile: ...
 ```
+POST /api/datasets  (multipart/form-data, file=<csv|parquet>)
 
-### `packages/llm_adapter`
-
-```python
-class LLMAdapter(ABC):
-    @abstractmethod
-    def complete(self, prompt: str) -> str: ...
-
-class LLMAdapterFactory:
-    @staticmethod
-    def from_settings(settings: Settings) -> LLMAdapter: ...
-```
-
-### `packages/semantic_model`
-
-```python
-class SemanticModelValidator:
-    def validate(self, model_dict: dict) -> ValidationResult: ...
-
-class SemanticResolver:
-    def resolve_terms(self, question: str, model: SemanticModel) -> list[TermMapping]: ...
-    def to_sql_fragments(self, model: SemanticModel) -> list[str]: ...
+  IngestService.upload()
+  1. Validate extension (.csv / .parquet)
+  2. Read bytes, check < 500 MB limit
+  3. Write to data/uploads/<dataset_id>/<filename>
+  4. DuckDB: CREATE OR REPLACE VIEW "<view_name>" AS SELECT * FROM '<path>'
+  5. profile_dataset() → per-column stats (type, nulls, distinct, min/max, samples)
+  6. Save Dataset row to SQLite
+  7. Return DatasetResponse (id, profile, row_count, …)
 ```
 
 ---
 
-## Environment Configuration
+## Semantic Model
 
-All runtime configuration flows through environment variables, loaded via `pydantic-settings` in `apps/api/config.py`. No hardcoded values in application code.
+A semantic model is a YAML/JSON document that maps business vocabulary to SQL expressions. It is the single source of truth for term resolution.
 
-See `.env.example` for the full reference.
+```yaml
+name: retail_sales
+dataset: retail_sales           # must match DuckDB view name
+grain: one row per order line
+time_column: order_date
+
+metrics:
+  - name: revenue
+    expression: SUM(revenue)
+    aliases: [sales, total_revenue, gross_revenue]
+    format: currency
+
+dimensions:
+  - name: region
+    column: region
+    aliases: [geo]
+    values: [North, South, East, West]
+
+synonyms:
+  - phrase: top selling
+    maps_to: metric:revenue
+
+business_rules:
+  - name: exclude_returns
+    filter: "is_return = 'false'"
+    applies_to: [metric:revenue]
+
+caveats:
+  - Revenue is gross; returns are not deducted.
+```
+
+The `SemanticResolver` builds an inverted index (phrase → metric/dimension) at construction time. Resolution is O(1) per term lookup.
 
 ---
 
-## Testing Strategy
+## Packages
 
-| Layer | Tool | Location |
-|---|---|---|
-| API unit tests | pytest | `apps/api/tests/` |
-| Package unit tests | pytest | `packages/*/tests/` |
-| API integration tests | pytest + httpx | `apps/api/tests/integration/` |
-| Full-stack integration | pytest | `tests/` |
-| Browser smoke tests | Playwright | `apps/web/tests/e2e/` |
+| Package | Purpose |
+|---------|---------|
+| `packages/semantic_model/` | Model validation (JSON schema + semantic rules), term resolver |
+| `packages/query_engine/` | DuckDB wrapper, data profiler, analytics pipeline |
+| `packages/llm_adapter/` | Async HTTP client for OpenAI / Anthropic / compatible APIs |
+| `packages/shared/` | Shared utilities |
 
-All tests run in CI on every pull request. See `.github/workflows/ci.yml`.
+All packages are pure Python, importable without installation by adding the repo root to `sys.path`.
+
+---
+
+## Confidence Scoring
+
+| Level | Condition |
+|-------|-----------|
+| `high` | All terms matched exactly (not via alias/default), no unmapped terms |
+| `medium` | Some terms matched via alias/synonym, a default metric was used, or there are unmapped terms |
+| `low` | No metrics resolved (but clarification not triggered) |
+| `clarification_needed` | No metrics identified — returns a clarifying question |
+
+---
+
+## Chart Type Routing
+
+| Condition | Chart |
+|-----------|-------|
+| No dimensions | `metric` (KPI card) |
+| > 25 rows or > 1 dimension | `table` |
+| 1 date dimension or question_type=trend | `line` |
+| question_type=ranking | `bar` |
+| 1 dim + 1 metric | `bar` |
+| 1 dim + multiple metrics | `grouped_bar` |
+
+---
+
+## Technology Choices
+
+| Component | Technology | Rationale |
+|-----------|-----------|-----------|
+| API | FastAPI + Pydantic v2 | Async, typed, auto OpenAPI docs |
+| Analytics DB | DuckDB | Columnar, zero-config, fast aggregations on CSV |
+| Metadata DB | SQLite + SQLAlchemy async | Lightweight persistence, no external server |
+| LLM | OpenAI / Anthropic (configurable) | Provider-agnostic via httpx adapter |
+| Frontend | Next.js 14 App Router + Tailwind | React server components, dark theme |
+| Testing | pytest + pytest-asyncio | Async-native, parametrize for evals |
+| CLI | Typer + Rich | Ergonomic, coloured output |

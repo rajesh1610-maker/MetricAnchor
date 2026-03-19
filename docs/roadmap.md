@@ -22,14 +22,15 @@ Phases map to GitHub milestones. Each milestone closes with:
 
 | Phase | Milestone | Theme | Status |
 |---|---|---|---|
-| 0 | Discovery | Product definition and documentation | Done |
-| 1 | Foundation | Repo scaffold, CI, Docker, and core architecture | Planned |
-| 2 | Ingest | File upload, schema profiling, DuckDB registration | Planned |
-| 3 | Semantic Layer | YAML model format, validator, CLI, UI editor (basic) | Planned |
-| 4 | Q&A Engine | LLM integration, SQL generation, execution, trust output | Planned |
-| 5 | UI Polish | Charts, result tables, developer view, feedback flow | Planned |
-| 6 | OSS Hardening | Tests, docs, CONTRIBUTING, issue templates, v1.0 tag | Planned |
-| Later | Future | Database connectors, collaboration, enterprise features | Future |
+| 0 | Discovery | Product definition and documentation | ✅ Done |
+| 1 | Foundation | Repo scaffold, CI, Docker, and core architecture | ✅ Done |
+| 2 | Ingest | File upload, schema profiling, DuckDB registration | ✅ Done |
+| 3 | Semantic Layer | YAML model format, validator, resolver, UI editor | ✅ Done |
+| 4 | Q&A Engine | LLM integration, SQL generation, execution, trust output | ✅ Done |
+| 5 | UI Polish | Charts, result tables, developer view, feedback flow | ✅ Done |
+| 6 | OSS Hardening | Tests, CLI, structured logging, docs, v1.0 tag | ✅ Done |
+| Next | v1.x | Database connectors, time-intelligence, dbt import | Planned |
+| Later | v2.0 | Collaboration, enterprise features, plugin ecosystem | Future |
 
 ---
 

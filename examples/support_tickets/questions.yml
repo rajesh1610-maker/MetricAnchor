@@ -1,0 +1,190 @@
+# Example questions and evaluation assertions for support_tickets
+#
+# Dataset stats (seed=42):
+#   256 total tickets  |  222 resolved  |  34 unresolved
+#   SLA breach rate = 31.1% (69 of 222 resolved)
+#   Avg CSAT = 3.38  |  Avg resolution hours = 24.22
+#   Priority: P1=40, P2=88, P3=128
+#   Teams: Engineering=77, Billing=69, Onboarding=55, Product=55
+
+questions:
+
+  - id: st_01
+    question: "How many support tickets are there?"
+    expected_chart: metric
+    sql_contains:
+      - COUNT
+      - support_tickets
+    result:
+      row_count: 1
+      columns: [ticket_count]
+      value_checks:
+        - column: ticket_count
+          operator: "=="
+          value: 256
+    confidence: high
+    notes: >
+      Total row count — no filter, no grouping. Should resolve to ticket_count metric.
+
+  - id: st_02
+    question: "Ticket volume by priority"
+    expected_chart: bar
+    sql_contains:
+      - COUNT
+      - priority
+      - GROUP BY
+    result:
+      row_count: 3
+      columns: [priority, ticket_count]
+      value_checks:
+        - column: ticket_count
+          operator: "sum"
+          value: 256
+    confidence: high
+    notes: >
+      P3=128, P2=88, P1=40. Bar chart ordered by priority or count.
+
+  - id: st_03
+    question: "What is the SLA breach rate?"
+    expected_chart: metric
+    sql_contains:
+      - sla_breached
+      - NULLIF
+    result:
+      row_count: 1
+      columns: [sla_breach_rate]
+      value_checks:
+        - column: sla_breach_rate
+          operator: "approx"
+          value: 31.1
+          tolerance: 1.0
+    confidence: medium
+    notes: >
+      69 breaches out of 222 resolved = 31.1%. Medium confidence because
+      the metric uses a complex CASE expression and unresolved tickets are excluded.
+
+  - id: st_04
+    question: "Average resolution time by team"
+    expected_chart: bar
+    sql_contains:
+      - resolution_hours
+      - team
+      - AVG
+      - GROUP BY
+    result:
+      row_count: 4
+      columns: [team, avg_resolution_hours]
+      value_checks:
+        - column: avg_resolution_hours
+          operator: "all_positive"
+    confidence: high
+    notes: >
+      Onboarding slowest (~27.4h), Billing fastest (~22.3h).
+      All resolution hours are positive when non-null.
+
+  - id: st_05
+    question: "What is the average CSAT score?"
+    expected_chart: metric
+    sql_contains:
+      - csat
+      - AVG
+    result:
+      row_count: 1
+      columns: [avg_csat]
+      value_checks:
+        - column: avg_csat
+          operator: "approx"
+          value: 3.38
+          tolerance: 0.1
+    confidence: high
+    notes: >
+      AVG(csat) across resolved tickets = 3.38. CSAT nulls (unresolved) excluded.
+
+  - id: st_06
+    question: "Which team has the most tickets?"
+    expected_chart: bar
+    sql_contains:
+      - COUNT
+      - team
+      - ORDER BY
+    result:
+      row_count: 4
+      columns: [team, ticket_count]
+      value_checks:
+        - column: team
+          operator: "first_value"
+          value: Engineering
+    confidence: high
+    notes: >
+      Engineering leads (77), then Billing (69), Onboarding (55), Product (55).
+
+  - id: st_07
+    question: "How many P1 tickets are there?"
+    expected_chart: metric
+    sql_contains:
+      - COUNT
+      - P1
+    result:
+      row_count: 1
+      columns: [ticket_count]
+      value_checks:
+        - column: ticket_count
+          operator: "=="
+          value: 40
+    confidence: high
+    notes: >
+      Filters to priority = 'P1'. Should return 40.
+
+  - id: st_08
+    question: "SLA breach rate by category"
+    expected_chart: bar
+    sql_contains:
+      - sla_breached
+      - category
+      - GROUP BY
+    result:
+      row_count: 5
+      columns: [category, sla_breach_rate]
+      value_checks:
+        - column: category
+          operator: "first_value"
+          value: Integration
+    confidence: medium
+    notes: >
+      Integration highest (35.5%), Feature Request lowest (25.0%).
+      Medium confidence — complex ratio metric with categorical grouping.
+
+  - id: st_09
+    question: "Average CSAT by priority"
+    expected_chart: bar
+    sql_contains:
+      - csat
+      - priority
+      - AVG
+      - GROUP BY
+    result:
+      row_count: 3
+      columns: [priority, avg_csat]
+      value_checks:
+        - column: priority
+          operator: "first_value"
+          value: P1
+    confidence: high
+    notes: >
+      P1 highest CSAT (3.66), P3 lowest (3.24). P1 tickets resolved faster
+      hence higher satisfaction. Ordered by avg_csat DESC → P1 first.
+
+  - id: st_10
+    question: "Ticket volume trend over time"
+    expected_chart: line
+    sql_contains:
+      - COUNT
+      - created_at
+      - GROUP BY
+    result:
+      row_count: {"min": 4, "max": 6}
+      columns: [created_at, ticket_count]
+    confidence: high
+    notes: >
+      5 months of data (Oct 2025 – Feb 2026). Time series grouped by month.
+      Should produce a line chart with 5 data points.

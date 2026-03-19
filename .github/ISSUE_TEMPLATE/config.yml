@@ -1,0 +1,9 @@
+blank_issues_enabled: false
+
+contact_links:
+  - name: Discussions (questions, ideas, show & tell)
+    url: https://github.com/your-username/metricanchor/discussions
+    about: Use GitHub Discussions for open-ended questions, architecture discussions, and sharing what you built.
+  - name: Documentation
+    url: https://github.com/your-username/metricanchor/tree/main/docs
+    about: Architecture, API reference, local development guide, and eval suite docs.

@@ -1,0 +1,206 @@
+# Example questions and evaluation assertions for retail_sales
+#
+# Each entry defines:
+#   question        – the natural language question
+#   expected_chart  – the chart_type the pipeline should return
+#   sql_contains    – substrings that MUST appear in the generated SQL
+#   sql_excludes    – substrings that must NOT appear in the generated SQL
+#   result          – assertions on the query result
+#     row_count       – exact or range {"min": N, "max": M}
+#     columns         – column names that must be present
+#     value_checks    – list of {column, operator, value} assertions
+#   confidence      – expected confidence level (high / medium / low)
+#   notes           – human-readable rationale for the assertions
+#
+# All revenue figures are from the deterministically generated retail_sales.csv
+# (seed=42). Re-run sample_data/generate.py to regenerate with the same values.
+# Total revenue = $208,222.95  |  Total margin = $71,605.26  |  774 rows
+
+questions:
+
+  - id: rs_01
+    question: "What is total revenue?"
+    expected_chart: metric
+    sql_contains:
+      - SUM(revenue)
+      - retail_sales
+    result:
+      row_count: 1
+      columns: [revenue]
+      value_checks:
+        - column: revenue
+          operator: "=="
+          value: 208222.95
+    confidence: high
+    notes: >
+      Simplest possible metric lookup — no grouping, no time filter.
+      Result should be a single KPI card.
+
+  - id: rs_02
+    question: "Revenue by product category"
+    expected_chart: bar
+    sql_contains:
+      - SUM(revenue)
+      - product
+      - GROUP BY
+    result:
+      row_count: 5
+      columns: [product, revenue]
+      value_checks:
+        - column: revenue
+          operator: "sum"
+          value: 208222.95
+    confidence: high
+    notes: >
+      Five product categories (Electronics, Apparel, Home, Sports, Beauty).
+      Electronics should be highest (~$81,710).
+
+  - id: rs_03
+    question: "Top 3 products by revenue"
+    expected_chart: bar
+    sql_contains:
+      - SUM(revenue)
+      - product
+      - ORDER BY
+      - LIMIT 3
+    result:
+      row_count: 3
+      columns: [product, revenue]
+      value_checks:
+        - column: product
+          operator: "first_value"
+          value: Electronics
+    confidence: high
+    notes: >
+      Should apply ORDER BY revenue DESC LIMIT 3.
+      Top 3 are Electronics ($81,710), Home ($39,746), Apparel ($39,592).
+
+  - id: rs_04
+    question: "What is the overall margin rate?"
+    expected_chart: metric
+    sql_contains:
+      - margin
+      - revenue
+      - NULLIF
+    result:
+      row_count: 1
+      columns: [margin_rate]
+      value_checks:
+        - column: margin_rate
+          operator: "approx"
+          value: 34.39
+          tolerance: 0.5
+    confidence: high
+    notes: >
+      margin_rate = SUM(margin) / SUM(revenue) * 100 = 34.39%.
+      Uses ratio expression — should include NULLIF to protect division.
+
+  - id: rs_05
+    question: "Revenue by region"
+    expected_chart: bar
+    sql_contains:
+      - SUM(revenue)
+      - region
+      - GROUP BY
+    result:
+      row_count: 4
+      columns: [region, revenue]
+      value_checks:
+        - column: revenue
+          operator: "sum"
+          value: 208222.95
+    confidence: high
+    notes: >
+      Four regions (North, South, East, West). South leads (~$60,350).
+
+  - id: rs_06
+    question: "Which channel drives the most revenue?"
+    expected_chart: bar
+    sql_contains:
+      - SUM(revenue)
+      - channel
+      - GROUP BY
+    result:
+      row_count: 3
+      columns: [channel, revenue]
+      value_checks:
+        - column: channel
+          operator: "first_value"
+          value: Online
+    confidence: high
+    notes: >
+      Online (~$125,736) dominates over In-Store (~$65,211) and Wholesale (~$17,276).
+
+  - id: rs_07
+    question: "Revenue trend by month"
+    expected_chart: line
+    sql_contains:
+      - revenue
+      - order_date
+      - GROUP BY
+    result:
+      row_count: {"min": 13, "max": 15}
+      columns: [order_date, revenue]
+    confidence: high
+    notes: >
+      14 months of data (Jan 2025 – Feb 2026). Q4 (Oct–Dec) should show
+      a visible spike due to seasonality in the generator.
+
+  - id: rs_08
+    question: "What is average order value?"
+    expected_chart: metric
+    sql_contains:
+      - SUM(revenue)
+      - COUNT
+      - NULLIF
+    result:
+      row_count: 1
+      columns: [aov]
+      value_checks:
+        - column: aov
+          operator: "approx"
+          value: 269.02
+          tolerance: 1.0
+    confidence: high
+    notes: >
+      AOV = SUM(revenue) / COUNT(*) = 208,222.95 / 774 = $269.02.
+
+  - id: rs_09
+    question: "Compare margin rate by product category"
+    expected_chart: bar
+    sql_contains:
+      - margin
+      - revenue
+      - product
+      - GROUP BY
+    result:
+      row_count: 5
+      columns: [product, margin_rate]
+      value_checks:
+        - column: product
+          operator: "first_value"
+          value: Beauty
+    confidence: high
+    notes: >
+      Beauty has highest margin (~62%), Electronics lowest (~20%).
+      Result ordered by margin_rate DESC should put Beauty first.
+
+  - id: rs_10
+    question: "Revenue and margin for the Online channel"
+    expected_chart: metric
+    sql_contains:
+      - revenue
+      - margin
+      - Online
+    result:
+      row_count: 1
+      columns: [revenue, margin]
+      value_checks:
+        - column: revenue
+          operator: "approx"
+          value: 125735.51
+          tolerance: 1.0
+    confidence: high
+    notes: >
+      Single-row result filtered to Online channel.
+      Revenue ≈ $125,736 (60% of total, consistent with generator weights).

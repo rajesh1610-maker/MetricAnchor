@@ -1,6 +1,6 @@
 # MetricAnchor
 
-**Grounded answers for business data.**
+**Ask questions about your data in plain English. Get SQL, charts, and confidence scores back. Everything is inspectable.**
 
 [![CI](https://github.com/your-username/metricanchor/actions/workflows/ci.yml/badge.svg)](https://github.com/your-username/metricanchor/actions/workflows/ci.yml)
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
@@ -8,9 +8,9 @@
 [![Node 20+](https://img.shields.io/badge/node-20+-green.svg)](https://nodejs.org/)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
 
-MetricAnchor is an open-source AI analytics copilot that helps you upload tabular data, define business concepts in plain English, and ask questions in natural language — with every answer showing its SQL, assumptions, business-term mappings, and confidence level.
+MetricAnchor is an open-source AI analytics copilot. Upload a CSV, define what "revenue" or "churn rate" means in YAML, and ask questions in natural language. Every answer shows its SQL, how business terms were resolved, what assumptions were made, and a confidence score.
 
-**Trust is the feature.** No black boxes. Every answer is inspectable.
+**No black boxes.** The SQL that ran, the semantic mappings applied, the time ranges interpreted — all of it is surfaced every time.
 
 ---
 
@@ -30,9 +30,20 @@ Most AI analytics tools give confident answers with no way to verify them. One w
 
 ---
 
-## Screenshots
+## What it looks like
 
-> _Screenshots will be added after Phase 5 (UI Polish). For now, see the demo scenarios below._
+> Run `make up && make seed` and open http://localhost:3000 to see these screens live.
+> Screenshots will be added here — see [docs/demo-flow.md](docs/demo-flow.md) for the full walkthrough.
+
+| Screen | What you see |
+|---|---|
+| **Dataset profile** | Column types, null rates, distinct counts, sample values — profiled automatically on upload |
+| **Ask page** | Question textarea + dataset selector + example chips; results appear inline without page reload |
+| **Answer tab** | Plain-English answer sentence + KPI card (single metric) or bar/line chart (grouped results) |
+| **SQL tab** | The exact `SELECT` statement that ran, formatted with syntax highlighting |
+| **Assumptions tab** | Time expressions interpreted (e.g. `"last quarter" → Q4 2025, 2025-10-01 to 2025-12-31`) |
+| **Provenance tab** | Business terms resolved: `"revenue" → metric:revenue (SUM(order_total) WHERE status='completed')` |
+| **Developer mode** | Full pipeline trace: parser output → semantic mapper → SQL generator → execution engine |
 
 ---
 
@@ -40,33 +51,37 @@ Most AI analytics tools give confident answers with no way to verify them. One w
 
 **Prerequisites:** Docker and Docker Compose.
 
+> **No API key required.** The app runs in stub mode without any LLM — SQL generation, trust output, charts, and all three demo datasets work fully offline.
+
 ```bash
 # Clone the repo
 git clone https://github.com/your-username/metricanchor.git
 cd metricanchor
 
-# Copy environment config
+# Copy the env template (no edits required for stub mode)
 cp .env.example .env
-# Edit .env and add your LLM API key (OpenAI, Anthropic, or local Ollama)
 
-# Start all services
+# Start API + web UI
 make up
 
-# Load the sample datasets
+# Generate the three sample datasets and seed the API
+make generate-data
 make seed
 
 # Open the app
 open http://localhost:3000
 ```
 
-The app will be running at:
+Services:
 - **Web UI:** http://localhost:3000
 - **API:** http://localhost:8000
 - **API Docs (OpenAPI):** http://localhost:8000/api/docs
 
-### No Docker? Local Dev Setup
+**To enable AI-quality answers:** set `LLM_API_KEY=sk-...` in `.env` and restart (`make down && make up`). Supports OpenAI, Anthropic, and any OpenAI-compatible endpoint (Ollama, LM Studio, etc.).
 
-See [CONTRIBUTING.md](CONTRIBUTING.md#local-development-without-docker) for instructions to run the backend and frontend locally without Docker.
+### No Docker?
+
+See [docs/local-development.md](docs/local-development.md) for instructions to run the API and frontend locally without Docker using Python venv and `npm run dev`.
 
 ---
 
@@ -109,6 +124,25 @@ Every response includes:
 - **Term mappings** — which semantic model definitions were applied
 - **Assumptions** — e.g., "'last quarter' interpreted as Q4 2025"
 - **Confidence level** — High, Medium, Low, or Unsure, with a plain-English explanation
+
+**Example API response** for `"revenue by region"`:
+```json
+{
+  "answer": "The query returned 4 rows with columns: region, revenue.",
+  "sql": "SELECT \"region\" AS region,\n  SUM(order_total) FILTER (WHERE status = 'completed') AS revenue\nFROM \"retail_sales\"\nGROUP BY \"region\"\nORDER BY revenue DESC",
+  "columns": ["region", "revenue"],
+  "rows": [["North", 56210.40], ["East", 54890.15], ["South", 50311.75], ["West", 46810.65]],
+  "chart_type": "bar",
+  "semantic_mappings": [
+    {"phrase": "revenue", "resolved_to": "metric:revenue", "via": "exact"},
+    {"phrase": "region",  "resolved_to": "dimension:region", "via": "exact"}
+  ],
+  "assumptions": [],
+  "confidence": "high",
+  "confidence_note": "All terms mapped exactly to defined metrics and dimensions.",
+  "provenance": { "steps": ["question_parser", "semantic_mapper", "sql_generator", "execution_engine", "answer_formatter"] }
+}
+```
 
 ---
 
@@ -193,7 +227,7 @@ All configuration is via environment variables. Copy `.env.example` to `.env` an
 | `LLM_MODEL` | Model name to use | `gpt-4o` |
 | `LLM_BASE_URL` | Base URL (for local models like Ollama) | — |
 | `DATA_DIR` | Where uploaded files are stored | `./data` |
-| `DATABASE_URL` | SQLite connection string | `sqlite:///./metricanchor.db` |
+| `DATABASE_URL` | SQLite connection string | `sqlite+aiosqlite:///./data/metricanchor.db` |
 
 ### Using a Local Model (Ollama)
 ```bash
@@ -214,18 +248,34 @@ LLM_MODEL=llama3.2
 ## CLI
 
 ```bash
-# Install the CLI
-pip install -e "packages/semantic_model[cli]"
+# From the repo root (uses the API venv)
+cd MetricAnchor
+
+# Check API status
+apps/api/.venv/bin/python3 -m cli.main status
 
 # Upload a dataset
-metricanchor upload sample_data/retail_sales.csv
+apps/api/.venv/bin/python3 -m cli.main ingest sample_data/retail_sales.csv
 
-# Validate a semantic model
-metricanchor validate examples/retail_sales/semantic_model.yml
+# View column profile
+apps/api/.venv/bin/python3 -m cli.main profile <dataset_id>
 
-# Ask a question from the terminal
-metricanchor ask "What was revenue last quarter?" --dataset retail_sales
+# Scaffold + upload a semantic model
+apps/api/.venv/bin/python3 -m cli.main model init <dataset_id> -o my_model.yml
+# Edit my_model.yml, then:
+apps/api/.venv/bin/python3 -m cli.main model create <dataset_id> my_model.yml
+
+# Ask a question
+apps/api/.venv/bin/python3 -m cli.main ask <dataset_id> "revenue by region"
+apps/api/.venv/bin/python3 -m cli.main ask <dataset_id> "top 5 products" --provenance
+
+# Run the offline eval suite
+apps/api/.venv/bin/python3 -m cli.main eval run
 ```
+
+Or use the `make` shortcuts: `make cli-status`, `make cli-datasets`.
+
+See [docs/local-development.md](docs/local-development.md#cli-usage) for the full CLI reference.
 
 ---
 
@@ -235,13 +285,14 @@ metricanchor ask "What was revenue last quarter?" --dataset retail_sales
 |---|---|---|
 | 0 | Product definition and documentation | ✅ Done |
 | 1 | Repo scaffold, CI, Docker, and core architecture | ✅ Done |
-| 2 | File upload, schema profiling, DuckDB registration | Planned |
-| 3 | YAML semantic layer, validator, CLI | Planned |
-| 4 | LLM integration, SQL generation, trust output | Planned |
-| 5 | UI polish, charts, developer view, feedback flow | Planned |
-| 6 | OSS hardening, full test suite, v1.0 release | Planned |
+| 2 | File upload, schema profiling, DuckDB registration | ✅ Done |
+| 3 | YAML semantic layer, validator, resolver | ✅ Done |
+| 4 | LLM integration, SQL generation, trust output | ✅ Done |
+| 5 | UI polish, charts, developer view, feedback flow | ✅ Done |
+| 6 | Test suite, CLI, structured logging, docs, v1.0 | ✅ Done |
+| Next | Database connectors, time-intelligence metrics, dbt import | Planned |
 
-See [docs/roadmap.md](docs/roadmap.md) for the full roadmap.
+See [docs/roadmap.md](docs/roadmap.md) for the full roadmap and future directions.
 
 ---
 
