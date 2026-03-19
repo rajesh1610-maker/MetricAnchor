@@ -13,6 +13,7 @@ services:
     volumes:
       - metricanchor_data:/data
       - ./apps/api:/app
+      - ./packages:/app/packages
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/api/health"]
       interval: 10s

@@ -12,7 +12,10 @@ from fastapi import UploadFile
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
+_svc_dir = Path(__file__).resolve().parent
+_repo_root = _svc_dir.parents[2] if len(_svc_dir.parents) > 2 else _svc_dir.parent
+if str(_repo_root) not in sys.path:
+    sys.path.insert(0, str(_repo_root))
 
 from packages.query_engine import QueryEngine, sanitize_view_name
 

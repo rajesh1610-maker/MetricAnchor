@@ -6,7 +6,10 @@ import sys
 from functools import lru_cache
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+_api_dir = Path(__file__).resolve().parent
+_repo_root = _api_dir.parents[1] if len(_api_dir.parents) > 1 else _api_dir
+if str(_repo_root) not in sys.path:
+    sys.path.insert(0, str(_repo_root))
 
 from packages.query_engine import QueryEngine
 
