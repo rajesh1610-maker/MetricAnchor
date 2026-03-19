@@ -44,7 +44,7 @@ jobs:
           LLM_MODEL=gpt-4o
           DATA_DIR=/data
           DATABASE_URL=sqlite+aiosqlite:////data/metricanchor.db
-          CORS_ORIGINS=http://localhost:3000
+          CORS_ORIGINS=["http://localhost:3000"]
           API_DEBUG=false
           LOG_LEVEL=INFO
           LOG_FORMAT=json
