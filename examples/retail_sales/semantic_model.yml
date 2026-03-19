@@ -74,15 +74,15 @@ dimensions:
 
 synonyms:
   - phrase: top selling
-    maps_to: revenue
+    maps_to: metric:revenue
   - phrase: best performing
-    maps_to: revenue
+    maps_to: metric:revenue
   - phrase: gross profit
-    maps_to: margin
+    maps_to: metric:margin
   - phrase: profitability
-    maps_to: margin_rate
+    maps_to: metric:margin_rate
   - phrase: store
-    maps_to: channel
+    maps_to: dimension:channel
 
 caveats:
   - Revenue is gross revenue — returns and cancellations are NOT netted out in this dataset.

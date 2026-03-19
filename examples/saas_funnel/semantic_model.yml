@@ -93,17 +93,17 @@ dimensions:
 
 synonyms:
   - phrase: how many customers do we have
-    maps_to: conversions
+    maps_to: metric:conversions
   - phrase: how much revenue
-    maps_to: mrr
+    maps_to: metric:mrr
   - phrase: did we lose
-    maps_to: churned_users
+    maps_to: metric:churned_users
   - phrase: best channel
-    maps_to: conversion_rate
+    maps_to: metric:conversion_rate
   - phrase: top acquisition source
-    maps_to: acquisition_channel
+    maps_to: dimension:acquisition_channel
   - phrase: monthly revenue
-    maps_to: mrr
+    maps_to: metric:mrr
 
 business_rules:
   - name: active_users_for_mrr

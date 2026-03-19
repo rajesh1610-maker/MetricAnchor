@@ -73,21 +73,21 @@ dimensions:
 
 synonyms:
   - phrase: p1 incidents
-    maps_to: ticket_count
+    maps_to: metric:ticket_count
   - phrase: critical issues
-    maps_to: ticket_count
+    maps_to: metric:ticket_count
   - phrase: how long to resolve
-    maps_to: avg_resolution_hours
+    maps_to: metric:avg_resolution_hours
   - phrase: response time
-    maps_to: avg_resolution_hours
+    maps_to: metric:avg_resolution_hours
   - phrase: customer happiness
-    maps_to: avg_csat
+    maps_to: metric:avg_csat
   - phrase: how satisfied are customers
-    maps_to: avg_csat
+    maps_to: metric:avg_csat
   - phrase: backlog
-    maps_to: ticket_count
+    maps_to: metric:ticket_count
   - phrase: open issues
-    maps_to: ticket_count
+    maps_to: metric:ticket_count
 
 caveats:
   - sla_breached is blank for unresolved tickets — they are excluded from sla_breach_rate and avg_csat.
