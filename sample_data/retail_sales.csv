@@ -1,0 +1,41 @@
+order_id,order_date,customer_id,product_category,product_name,quantity,unit_price,order_total,status,region
+ORD-001,2025-10-03,CUST-042,Electronics,Wireless Headphones,1,89.99,89.99,completed,North
+ORD-002,2025-10-05,CUST-017,Apparel,Running Jacket,2,64.50,129.00,completed,East
+ORD-003,2025-10-07,CUST-091,Home,Coffee Maker,1,119.00,119.00,cancelled,West
+ORD-004,2025-10-09,CUST-055,Beauty,Vitamin C Serum,3,28.00,84.00,completed,South
+ORD-005,2025-10-12,CUST-042,Sports,Yoga Mat,1,45.00,45.00,completed,North
+ORD-006,2025-10-14,CUST-033,Electronics,USB-C Hub,2,39.99,79.98,completed,East
+ORD-007,2025-10-16,CUST-078,Apparel,Merino Sweater,1,98.00,98.00,returned,West
+ORD-008,2025-10-19,CUST-011,Home,Air Purifier,1,249.00,249.00,completed,North
+ORD-009,2025-10-21,CUST-065,Beauty,Moisturiser Set,2,42.50,85.00,completed,South
+ORD-010,2025-10-23,CUST-027,Sports,Resistance Bands,3,18.00,54.00,completed,East
+ORD-011,2025-10-26,CUST-091,Electronics,Mechanical Keyboard,1,149.99,149.99,completed,West
+ORD-012,2025-10-28,CUST-017,Home,Bamboo Cutting Board,2,32.00,64.00,completed,East
+ORD-013,2025-11-01,CUST-055,Apparel,Denim Jacket,1,112.00,112.00,completed,South
+ORD-014,2025-11-04,CUST-042,Electronics,Smart Watch,1,299.00,299.00,completed,North
+ORD-015,2025-11-06,CUST-033,Beauty,SPF 50 Sunscreen,4,22.00,88.00,completed,East
+ORD-016,2025-11-09,CUST-078,Sports,Running Shoes,1,134.99,134.99,completed,West
+ORD-017,2025-11-11,CUST-011,Home,Standing Desk Mat,1,67.00,67.00,cancelled,North
+ORD-018,2025-11-14,CUST-065,Electronics,Portable Charger,2,44.99,89.98,completed,South
+ORD-019,2025-11-17,CUST-027,Apparel,Wool Scarf,3,29.00,87.00,completed,East
+ORD-020,2025-11-20,CUST-091,Sports,Foam Roller,2,38.50,77.00,completed,West
+ORD-021,2025-11-23,CUST-042,Home,French Press,1,55.00,55.00,completed,North
+ORD-022,2025-11-26,CUST-017,Beauty,Retinol Cream,1,74.00,74.00,completed,East
+ORD-023,2025-11-28,CUST-055,Electronics,Webcam HD,1,79.99,79.99,returned,South
+ORD-024,2025-12-02,CUST-033,Apparel,Puffer Vest,1,89.00,89.00,completed,East
+ORD-025,2025-12-05,CUST-078,Home,Scented Candle Set,3,24.00,72.00,completed,West
+ORD-026,2025-12-08,CUST-011,Sports,Gym Gloves,2,21.00,42.00,completed,North
+ORD-027,2025-12-11,CUST-065,Electronics,Noise-Cancelling Earbuds,1,189.00,189.00,completed,South
+ORD-028,2025-12-14,CUST-027,Beauty,Face Mask Pack,5,14.00,70.00,completed,East
+ORD-029,2025-12-18,CUST-042,Apparel,Cashmere Gloves,2,55.00,110.00,completed,North
+ORD-030,2025-12-22,CUST-091,Home,Electric Kettle,1,79.00,79.00,completed,West
+ORD-031,2025-12-27,CUST-017,Sports,Jump Rope,3,16.00,48.00,completed,East
+ORD-032,2026-01-04,CUST-055,Electronics,Laptop Stand,1,69.99,69.99,completed,South
+ORD-033,2026-01-08,CUST-033,Home,Linen Throw Blanket,2,58.00,116.00,completed,East
+ORD-034,2026-01-12,CUST-078,Beauty,Hyaluronic Serum,1,52.00,52.00,completed,West
+ORD-035,2026-01-15,CUST-011,Apparel,Compression Tights,2,44.00,88.00,completed,North
+ORD-036,2026-01-19,CUST-065,Sports,Protein Shaker,3,12.00,36.00,cancelled,South
+ORD-037,2026-01-22,CUST-027,Electronics,Desk Lamp LED,1,59.99,59.99,completed,East
+ORD-038,2026-01-26,CUST-042,Home,Herb Garden Kit,1,38.00,38.00,completed,North
+ORD-039,2026-01-29,CUST-091,Beauty,Exfoliating Scrub,2,31.50,63.00,completed,West
+ORD-040,2026-02-03,CUST-017,Sports,Adjustable Dumbbells,1,229.00,229.00,completed,East

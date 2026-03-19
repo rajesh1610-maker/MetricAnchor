@@ -1,0 +1,105 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/your-username/metricanchor/semantic_model_schema",
+  "title": "MetricAnchor Semantic Model",
+  "description": "Defines business metrics, dimensions, and filters for a dataset.",
+  "type": "object",
+  "required": ["name", "dataset", "metrics"],
+  "additionalProperties": false,
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Unique identifier for this semantic model.",
+      "pattern": "^[a-z][a-z0-9_]*$"
+    },
+    "dataset": {
+      "type": "string",
+      "description": "Name of the dataset this model applies to. Must match the uploaded dataset name."
+    },
+    "description": {
+      "type": "string",
+      "description": "Human-readable description of this model and its intended use."
+    },
+    "metrics": {
+      "type": "array",
+      "description": "List of business metrics defined for this dataset.",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["name", "expression"],
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Unique metric name used in natural language questions.",
+            "pattern": "^[a-z][a-z0-9_]*$"
+          },
+          "description": {
+            "type": "string",
+            "description": "Plain-English definition of this metric shown to users in trust output."
+          },
+          "expression": {
+            "type": "string",
+            "description": "SQL aggregate expression, e.g. SUM(order_total) or COUNT(DISTINCT user_id)."
+          },
+          "filters": {
+            "type": "array",
+            "description": "Row-level filters applied before aggregation.",
+            "items": {
+              "type": "object",
+              "required": ["column", "operator", "value"],
+              "additionalProperties": false,
+              "properties": {
+                "column": { "type": "string" },
+                "operator": {
+                  "type": "string",
+                  "enum": ["=", "!=", ">", ">=", "<", "<=", "IN", "NOT IN", "IS NULL", "IS NOT NULL", "LIKE"]
+                },
+                "value": {
+                  "description": "Filter value — string, number, or array for IN/NOT IN."
+                }
+              }
+            }
+          },
+          "aliases": {
+            "type": "array",
+            "description": "Alternative names users might use when asking about this metric.",
+            "items": { "type": "string" }
+          }
+        }
+      }
+    },
+    "dimensions": {
+      "type": "array",
+      "description": "Columns users can group by or filter on in natural language.",
+      "items": {
+        "type": "object",
+        "required": ["name", "column"],
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Business-friendly name for this dimension.",
+            "pattern": "^[a-z][a-z0-9_]*$"
+          },
+          "column": {
+            "type": "string",
+            "description": "Actual column name in the dataset."
+          },
+          "description": {
+            "type": "string",
+            "description": "Human-readable explanation of this dimension."
+          },
+          "aliases": {
+            "type": "array",
+            "items": { "type": "string" }
+          }
+        }
+      }
+    },
+    "time_column": {
+      "type": "string",
+      "description": "The primary date/timestamp column used for time-based filtering and aggregation."
+    }
+  }
+}

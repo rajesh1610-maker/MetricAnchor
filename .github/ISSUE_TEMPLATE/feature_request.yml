@@ -1,0 +1,60 @@
+name: Feature Request
+description: Propose a new feature or improvement.
+labels: ["enhancement", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Before submitting, check [docs/roadmap.md](../../docs/roadmap.md) — your request may already be planned.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem does this solve?
+      description: Describe the user problem, not the solution. A good feature request starts with the pain.
+      placeholder: "As a citizen developer, I often upload data and can't tell which columns are dates vs. strings..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed solution
+      description: What would you build? How would it work?
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: What else did you consider? Why is your proposed solution better?
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Ingest / schema profiling
+        - Semantic model format
+        - Q&A engine / LLM integration
+        - Trust and explainability
+        - Web UI
+        - CLI
+        - REST API
+        - Connectors
+        - Testing / CI
+        - Documentation
+        - Other
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Pre-submission checklist
+      options:
+        - label: I searched existing issues and this is not a duplicate.
+          required: true
+        - label: I checked the roadmap and this is not already planned.
+          required: true
