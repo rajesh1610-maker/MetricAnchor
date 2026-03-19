@@ -89,3 +89,138 @@ export async function uploadDataset(file: File): Promise<Dataset> {
   }
   return res.json();
 }
+
+// ── Semantic Model types ───────────────────────────────────────────────────────
+
+export interface MetricDef {
+  name: string;
+  description?: string;
+  expression: string;
+  filters?: { column: string; operator: string; value: string }[];
+  aliases?: string[];
+  format?: string;
+  unit?: string;
+  default_aggregation?: string;
+}
+
+export interface DimensionDef {
+  name: string;
+  column: string;
+  description?: string;
+  aliases?: string[];
+  values?: string[];
+  is_date?: boolean;
+}
+
+export interface EntityDef {
+  name: string;
+  column: string;
+  description?: string;
+  aliases?: string[];
+}
+
+export interface SynonymDef {
+  phrase: string;
+  maps_to: string;
+}
+
+export interface BusinessRuleDef {
+  name: string;
+  description?: string;
+  filter: string;
+  applies_to?: string[];
+}
+
+export interface SemanticModelDefinition {
+  name: string;
+  dataset: string;
+  description?: string;
+  grain?: string;
+  time_column?: string;
+  metrics: MetricDef[];
+  dimensions?: DimensionDef[];
+  entities?: EntityDef[];
+  synonyms?: SynonymDef[];
+  business_rules?: BusinessRuleDef[];
+  caveats?: string[];
+  exclusions?: { description: string; filter?: string }[];
+}
+
+export interface SemanticModel {
+  id: string;
+  dataset_id: string;
+  name: string;
+  definition: SemanticModelDefinition;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface SemanticModelListResponse {
+  semantic_models: SemanticModel[];
+  total: number;
+}
+
+export interface ValidationResponse {
+  valid: boolean;
+  errors: string[];
+  warnings: string[];
+}
+
+// ── Semantic Model API ─────────────────────────────────────────────────────────
+
+export async function listSemanticModels(
+  datasetId?: string
+): Promise<SemanticModelListResponse> {
+  const qs = datasetId ? `?dataset_id=${datasetId}` : "";
+  return apiFetch(`/api/semantic_models${qs}`);
+}
+
+export async function getSemanticModel(id: string): Promise<SemanticModel> {
+  return apiFetch(`/api/semantic_models/${id}`);
+}
+
+export async function createSemanticModel(payload: {
+  dataset_id: string;
+  name: string;
+  definition: SemanticModelDefinition;
+}): Promise<SemanticModel> {
+  return apiFetch("/api/semantic_models", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function updateSemanticModel(
+  id: string,
+  definition: SemanticModelDefinition
+): Promise<SemanticModel> {
+  return apiFetch(`/api/semantic_models/${id}`, {
+    method: "PUT",
+    body: JSON.stringify({ definition }),
+  });
+}
+
+export async function deleteSemanticModel(id: string): Promise<void> {
+  const res = await fetch(`${API_BASE}/api/semantic_models/${id}`, {
+    method: "DELETE",
+  });
+  if (!res.ok && res.status !== 204) {
+    const detail = await res.json().catch(() => ({ detail: res.statusText }));
+    throw new Error(detail?.detail ?? `Delete failed (${res.status})`);
+  }
+}
+
+export async function validateSemanticModel(
+  definition: object
+): Promise<ValidationResponse> {
+  return apiFetch("/api/semantic_models/validate", {
+    method: "POST",
+    body: JSON.stringify(definition),
+  });
+}
+
+export async function exportSemanticModelYaml(id: string): Promise<string> {
+  const res = await fetch(`${API_BASE}/api/semantic_models/${id}/export`);
+  if (!res.ok) throw new Error(`Export failed (${res.status})`);
+  return res.text();
+}

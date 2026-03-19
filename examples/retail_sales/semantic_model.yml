@@ -5,12 +5,15 @@ description: >
   Covers revenue, order volume, average order value, and customer activity
   across product categories and regions.
 
+grain: "one row = one order line item"
 time_column: order_date
 
 metrics:
   - name: revenue
-    description: Total value of completed orders (excludes cancelled and returned orders)
-    expression: SUM(order_total)
+    description: "Total value of completed orders (excludes cancelled and returned orders)"
+    expression: "SUM(order_total)"
+    format: currency
+    default_aggregation: sum
     filters:
       - column: status
         operator: "="
@@ -21,8 +24,10 @@ metrics:
       - net revenue
 
   - name: order_count
-    description: Number of completed orders
-    expression: COUNT(DISTINCT order_id)
+    description: "Number of completed orders"
+    expression: "COUNT(DISTINCT order_id)"
+    format: number
+    default_aggregation: count
     filters:
       - column: status
         operator: "="
@@ -33,8 +38,10 @@ metrics:
       - completed orders
 
   - name: aov
-    description: Average order value — revenue divided by number of completed orders
-    expression: SUM(order_total) / NULLIF(COUNT(DISTINCT order_id), 0)
+    description: "Average order value — revenue divided by number of completed orders"
+    expression: "SUM(order_total) / NULLIF(COUNT(DISTINCT order_id), 0)"
+    format: currency
+    default_aggregation: sum
     filters:
       - column: status
         operator: "="
@@ -44,8 +51,10 @@ metrics:
       - average basket size
 
   - name: units_sold
-    description: Total quantity of items sold across completed orders
-    expression: SUM(quantity)
+    description: "Total quantity of items sold across completed orders"
+    expression: "SUM(quantity)"
+    format: number
+    default_aggregation: sum
     filters:
       - column: status
         operator: "="
@@ -54,22 +63,58 @@ metrics:
 dimensions:
   - name: product_category
     column: product_category
-    description: High-level product grouping (Electronics, Apparel, Home, etc.)
+    description: "High-level product grouping (Electronics, Apparel, Home, etc.)"
     aliases:
       - category
       - product type
 
   - name: region
     column: region
-    description: Geographic sales region
+    description: "Geographic sales region"
     aliases:
       - geography
       - area
 
+  - name: order_date
+    column: order_date
+    description: "Date the order was placed"
+    is_date: true
+    aliases:
+      - date
+      - day
+
   - name: status
     column: status
-    description: Order status (completed, cancelled, returned, pending)
+    description: "Order status (completed, cancelled, returned, pending)"
+    values:
+      - completed
+      - cancelled
+      - returned
+      - pending
 
-  - name: customer
-    column: customer_id
-    description: Unique customer identifier
+synonyms:
+  - phrase: "sales"
+    maps_to: "metric:revenue"
+  - phrase: "total sales"
+    maps_to: "metric:revenue"
+  - phrase: "basket size"
+    maps_to: "metric:aov"
+  - phrase: "orders"
+    maps_to: "metric:order_count"
+  - phrase: "category"
+    maps_to: "dimension:product_category"
+
+business_rules:
+  - name: completed_only
+    description: "Always filter to completed orders unless the user explicitly asks for other statuses"
+    filter: "status = 'completed'"
+    applies_to:
+      - metric:revenue
+      - metric:order_count
+      - metric:aov
+      - metric:units_sold
+
+caveats:
+  - "Refunds are not deducted from revenue. Revenue reflects gross order value at time of purchase."
+  - "order_total includes shipping and tax."
+  - "Data is refreshed daily. Same-day orders may not be present."

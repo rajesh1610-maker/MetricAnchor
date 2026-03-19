@@ -1,0 +1,147 @@
+name: support_tickets
+dataset: support_tickets
+description: >
+  Customer support ticket analytics. Covers volume, resolution time,
+  satisfaction scores, and backlog across teams, priority levels, and channels.
+
+grain: "one row = one support ticket"
+time_column: created_at
+
+metrics:
+  - name: ticket_count
+    description: "Total number of support tickets created"
+    expression: "COUNT(ticket_id)"
+    format: number
+    default_aggregation: count
+    aliases:
+      - tickets
+      - volume
+      - support requests
+
+  - name: open_tickets
+    description: "Number of tickets currently open (not resolved or closed)"
+    expression: "COUNT(ticket_id)"
+    format: number
+    default_aggregation: count
+    filters:
+      - column: status
+        operator: "in"
+        value: "('open', 'pending')"
+    aliases:
+      - backlog
+      - open issues
+      - outstanding tickets
+
+  - name: avg_resolution_hours
+    description: "Average time from ticket creation to resolution, in hours"
+    expression: "AVG(resolution_hours)"
+    format: number
+    default_aggregation: avg
+    filters:
+      - column: status
+        operator: "="
+        value: "resolved"
+    aliases:
+      - resolution time
+      - time to resolve
+      - MTTR
+
+  - name: csat_score
+    description: "Average customer satisfaction score (1–5 scale)"
+    expression: "AVG(satisfaction_score)"
+    format: number
+    default_aggregation: avg
+    filters:
+      - column: satisfaction_score
+        operator: "is not"
+        value: "null"
+    aliases:
+      - satisfaction
+      - CSAT
+      - customer satisfaction
+
+  - name: resolution_rate
+    description: "Percentage of tickets resolved out of all tickets"
+    expression: "100.0 * COUNT(CASE WHEN status = 'resolved' THEN 1 END) / NULLIF(COUNT(ticket_id), 0)"
+    format: percent
+    default_aggregation: sum
+    aliases:
+      - resolve rate
+      - resolution percentage
+
+dimensions:
+  - name: priority
+    column: priority
+    description: "Ticket priority level"
+    values:
+      - critical
+      - high
+      - medium
+      - low
+    aliases:
+      - severity
+      - urgency
+
+  - name: team
+    column: assigned_team
+    description: "Support team responsible for the ticket"
+    aliases:
+      - assigned team
+      - squad
+
+  - name: channel
+    column: channel
+    description: "How the ticket was submitted (email, chat, phone, portal)"
+    values:
+      - email
+      - chat
+      - phone
+      - portal
+    aliases:
+      - source
+      - contact method
+
+  - name: category
+    column: category
+    description: "Issue category (billing, technical, account, general)"
+    aliases:
+      - issue type
+      - type
+
+  - name: created_at
+    column: created_at
+    description: "Date and time the ticket was created"
+    is_date: true
+    aliases:
+      - date
+      - created date
+      - opened
+
+synonyms:
+  - phrase: "backlog"
+    maps_to: "metric:open_tickets"
+  - phrase: "outstanding"
+    maps_to: "metric:open_tickets"
+  - phrase: "resolution time"
+    maps_to: "metric:avg_resolution_hours"
+  - phrase: "CSAT"
+    maps_to: "metric:csat_score"
+  - phrase: "satisfaction"
+    maps_to: "metric:csat_score"
+  - phrase: "severity"
+    maps_to: "dimension:priority"
+
+business_rules:
+  - name: exclude_test_tickets
+    description: "Exclude tickets tagged as test or internal"
+    filter: "category != 'test'"
+    applies_to:
+      - metric:ticket_count
+      - metric:open_tickets
+      - metric:avg_resolution_hours
+      - metric:csat_score
+
+caveats:
+  - "resolution_hours is only populated when status = 'resolved'. Open tickets are excluded from avg_resolution_hours."
+  - "satisfaction_score is optional — not all tickets receive a CSAT response."
+  - "Tickets created more than 90 days ago may have been archived and are not in this dataset."

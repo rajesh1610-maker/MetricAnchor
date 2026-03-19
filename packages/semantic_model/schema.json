@@ -1,28 +1,62 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.com/your-username/metricanchor/semantic_model_schema",
+  "$id": "https://github.com/your-username/metricanchor/semantic_model_schema_v2",
   "title": "MetricAnchor Semantic Model",
-  "description": "Defines business metrics, dimensions, and filters for a dataset.",
+  "description": "Defines business metrics, dimensions, entities, synonyms, and rules for a dataset.",
   "type": "object",
   "required": ["name", "dataset", "metrics"],
   "additionalProperties": false,
   "properties": {
     "name": {
       "type": "string",
-      "description": "Unique identifier for this semantic model.",
+      "description": "Unique identifier for this semantic model. Lowercase letters, numbers, and underscores only.",
       "pattern": "^[a-z][a-z0-9_]*$"
     },
     "dataset": {
       "type": "string",
-      "description": "Name of the dataset this model applies to. Must match the uploaded dataset name."
+      "description": "Name of the registered dataset this model applies to."
     },
     "description": {
       "type": "string",
       "description": "Human-readable description of this model and its intended use."
     },
+    "grain": {
+      "type": "string",
+      "description": "What one row represents. Plain English. E.g. 'one row = one completed order'."
+    },
+    "time_column": {
+      "type": "string",
+      "description": "Primary date/timestamp column for time-based filtering and trend questions."
+    },
+    "entities": {
+      "type": "array",
+      "description": "Key business objects in this dataset (customers, orders, tickets, users).",
+      "items": {
+        "type": "object",
+        "required": ["name", "column"],
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Business-friendly entity name.",
+            "pattern": "^[a-z][a-z0-9_]*$"
+          },
+          "column": {
+            "type": "string",
+            "description": "Column that uniquely identifies this entity (usually an ID column)."
+          },
+          "description": { "type": "string" },
+          "aliases": {
+            "type": "array",
+            "description": "Alternative names users might use (e.g. 'account', 'client').",
+            "items": { "type": "string" }
+          }
+        }
+      }
+    },
     "metrics": {
       "type": "array",
-      "description": "List of business metrics defined for this dataset.",
+      "description": "Business measures — numeric values computed by aggregating the data.",
       "minItems": 1,
       "items": {
         "type": "object",
@@ -36,11 +70,11 @@
           },
           "description": {
             "type": "string",
-            "description": "Plain-English definition of this metric shown to users in trust output."
+            "description": "Plain-English definition of this metric. Shown verbatim in trust output."
           },
           "expression": {
             "type": "string",
-            "description": "SQL aggregate expression, e.g. SUM(order_total) or COUNT(DISTINCT user_id)."
+            "description": "SQL aggregate expression. E.g. SUM(order_total), COUNT(DISTINCT user_id), AVG(resolution_time_hours)."
           },
           "filters": {
             "type": "array",
@@ -53,10 +87,10 @@
                 "column": { "type": "string" },
                 "operator": {
                   "type": "string",
-                  "enum": ["=", "!=", ">", ">=", "<", "<=", "IN", "NOT IN", "IS NULL", "IS NOT NULL", "LIKE"]
+                  "enum": ["=", "!=", ">", ">=", "<", "<=", "IN", "NOT IN", "IS NULL", "IS NOT NULL", "LIKE", "NOT LIKE"]
                 },
                 "value": {
-                  "description": "Filter value — string, number, or array for IN/NOT IN."
+                  "description": "Scalar string/number, or array for IN / NOT IN operators."
                 }
               }
             }
@@ -65,6 +99,22 @@
             "type": "array",
             "description": "Alternative names users might use when asking about this metric.",
             "items": { "type": "string" }
+          },
+          "format": {
+            "type": "string",
+            "description": "Display format for the result.",
+            "enum": ["number", "currency", "percent", "text"],
+            "default": "number"
+          },
+          "unit": {
+            "type": "string",
+            "description": "Optional unit label (USD, hours, %, etc.)."
+          },
+          "default_aggregation": {
+            "type": "string",
+            "description": "How to aggregate this metric when no explicit aggregation is requested.",
+            "enum": ["sum", "avg", "count", "min", "max"],
+            "default": "sum"
           }
         }
       }
@@ -88,18 +138,121 @@
           },
           "description": {
             "type": "string",
-            "description": "Human-readable explanation of this dimension."
+            "description": "Plain-English explanation of this dimension."
           },
           "aliases": {
             "type": "array",
+            "description": "Alternative names users might use.",
+            "items": { "type": "string" }
+          },
+          "values": {
+            "type": "array",
+            "description": "Known categorical values for this dimension. Helps the LLM avoid hallucinating values.",
+            "items": { "type": "string" }
+          },
+          "is_date": {
+            "type": "boolean",
+            "description": "Set true if this dimension is a date or timestamp column.",
+            "default": false
+          }
+        }
+      }
+    },
+    "synonyms": {
+      "type": "array",
+      "description": "Map natural language phrases to model concepts. Helps users refer to metrics/dimensions by colloquial names.",
+      "items": {
+        "type": "object",
+        "required": ["phrase", "maps_to"],
+        "additionalProperties": false,
+        "properties": {
+          "phrase": {
+            "type": "string",
+            "description": "The phrase a user might type, e.g. 'sales', 'customers', 'churned accounts'."
+          },
+          "maps_to": {
+            "type": "string",
+            "description": "What this phrase maps to. Format: metric:<name>, dimension:<name>, or entity:<name>."
+          }
+        }
+      }
+    },
+    "business_rules": {
+      "type": "array",
+      "description": "Always-applied SQL filters that encode domain logic not obvious from raw data.",
+      "items": {
+        "type": "object",
+        "required": ["name", "filter"],
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Short identifier for this rule."
+          },
+          "description": {
+            "type": "string",
+            "description": "Why this rule exists and what it excludes."
+          },
+          "filter": {
+            "type": "string",
+            "description": "SQL WHERE clause fragment. Applied globally unless a metric/dimension overrides it."
+          },
+          "applies_to": {
+            "type": "array",
+            "description": "Restrict this rule to specific metrics. Omit to apply globally.",
             "items": { "type": "string" }
           }
         }
       }
     },
-    "time_column": {
-      "type": "string",
-      "description": "The primary date/timestamp column used for time-based filtering and aggregation."
+    "caveats": {
+      "type": "array",
+      "description": "Plain-English warnings shown in the trust panel for every answer from this model.",
+      "items": { "type": "string" }
+    },
+    "exclusions": {
+      "type": "array",
+      "description": "Explicit data exclusions — what is intentionally NOT counted, and why.",
+      "items": {
+        "type": "object",
+        "required": ["description"],
+        "additionalProperties": false,
+        "properties": {
+          "description": {
+            "type": "string",
+            "description": "Plain-English description of what is excluded."
+          },
+          "filter": {
+            "type": "string",
+            "description": "The SQL condition that implements this exclusion."
+          }
+        }
+      }
+    },
+    "relationships": {
+      "type": "array",
+      "description": "Describes how this dataset relates to others (for future join support).",
+      "items": {
+        "type": "object",
+        "required": ["name", "dataset", "join_on"],
+        "additionalProperties": false,
+        "properties": {
+          "name": { "type": "string" },
+          "dataset": {
+            "type": "string",
+            "description": "The related dataset name."
+          },
+          "join_on": {
+            "type": "string",
+            "description": "SQL join condition. E.g. 'orders.customer_id = customers.id'."
+          },
+          "type": {
+            "type": "string",
+            "enum": ["LEFT", "INNER", "RIGHT"],
+            "default": "LEFT"
+          }
+        }
+      }
     }
   }
 }

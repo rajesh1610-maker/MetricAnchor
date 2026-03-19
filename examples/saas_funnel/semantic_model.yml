@@ -1,0 +1,180 @@
+name: saas_funnel
+dataset: saas_funnel
+description: >
+  SaaS product and marketing funnel analytics. Covers sign-ups, trial
+  conversions, paid activations, and churn across acquisition channels,
+  plan tiers, and cohort periods.
+
+grain: "one row = one user account"
+time_column: signup_date
+
+metrics:
+  - name: signups
+    description: "Total new user sign-ups in the period"
+    expression: "COUNT(account_id)"
+    format: number
+    default_aggregation: count
+    aliases:
+      - new users
+      - registrations
+      - new accounts
+
+  - name: trial_starts
+    description: "Number of accounts that started a free trial"
+    expression: "COUNT(account_id)"
+    format: number
+    default_aggregation: count
+    filters:
+      - column: stage
+        operator: ">="
+        value: "trial"
+    aliases:
+      - trials
+      - free trials
+
+  - name: trial_conversion_rate
+    description: "Percentage of sign-ups that converted from trial to paid"
+    expression: "100.0 * COUNT(CASE WHEN stage = 'paid' THEN 1 END) / NULLIF(COUNT(CASE WHEN stage IN ('trial', 'paid') THEN 1 END), 0)"
+    format: percent
+    default_aggregation: sum
+    aliases:
+      - conversion rate
+      - trial to paid
+      - CVR
+
+  - name: paid_accounts
+    description: "Number of accounts currently on a paid plan"
+    expression: "COUNT(account_id)"
+    format: number
+    default_aggregation: count
+    filters:
+      - column: stage
+        operator: "="
+        value: "paid"
+    aliases:
+      - paying customers
+      - customers
+      - paid users
+
+  - name: mrr
+    description: "Monthly recurring revenue from paid accounts"
+    expression: "SUM(monthly_recurring_revenue)"
+    format: currency
+    default_aggregation: sum
+    filters:
+      - column: stage
+        operator: "="
+        value: "paid"
+    aliases:
+      - monthly revenue
+      - recurring revenue
+      - MRR
+
+  - name: churn_rate
+    description: "Percentage of paid accounts that churned in the period"
+    expression: "100.0 * COUNT(CASE WHEN churned = true THEN 1 END) / NULLIF(COUNT(CASE WHEN stage = 'paid' THEN 1 END), 0)"
+    format: percent
+    default_aggregation: sum
+    aliases:
+      - churn
+      - attrition rate
+
+dimensions:
+  - name: channel
+    column: acquisition_channel
+    description: "Marketing channel that drove the sign-up"
+    values:
+      - organic
+      - paid_search
+      - social
+      - referral
+      - email
+      - direct
+    aliases:
+      - acquisition channel
+      - source
+      - marketing channel
+
+  - name: plan
+    column: plan_tier
+    description: "Subscription plan tier"
+    values:
+      - starter
+      - growth
+      - enterprise
+    aliases:
+      - plan tier
+      - tier
+      - subscription
+
+  - name: stage
+    column: stage
+    description: "Current funnel stage of the account"
+    values:
+      - visitor
+      - signup
+      - trial
+      - paid
+      - churned
+    aliases:
+      - funnel stage
+      - status
+
+  - name: signup_date
+    column: signup_date
+    description: "Date the account was created"
+    is_date: true
+    aliases:
+      - cohort
+      - sign-up date
+      - registration date
+
+  - name: country
+    column: country
+    description: "Country of the account holder"
+    aliases:
+      - region
+      - geography
+      - location
+
+entities:
+  - name: account
+    column: account_id
+    description: "Unique identifier for a user account"
+    aliases:
+      - user
+      - customer
+
+synonyms:
+  - phrase: "conversion rate"
+    maps_to: "metric:trial_conversion_rate"
+  - phrase: "CVR"
+    maps_to: "metric:trial_conversion_rate"
+  - phrase: "MRR"
+    maps_to: "metric:mrr"
+  - phrase: "monthly revenue"
+    maps_to: "metric:mrr"
+  - phrase: "churn"
+    maps_to: "metric:churn_rate"
+  - phrase: "customers"
+    maps_to: "metric:paid_accounts"
+  - phrase: "sign-ups"
+    maps_to: "metric:signups"
+  - phrase: "cohort"
+    maps_to: "dimension:signup_date"
+  - phrase: "source"
+    maps_to: "dimension:channel"
+
+business_rules:
+  - name: active_accounts_only
+    description: "Exclude churned accounts from revenue and active user metrics by default"
+    filter: "churned = false OR churned IS NULL"
+    applies_to:
+      - metric:paid_accounts
+      - metric:mrr
+
+caveats:
+  - "mrr is the contracted monthly value and does not reflect actual cash received."
+  - "trial_conversion_rate only counts accounts that have entered the trial stage — direct-to-paid upgrades are excluded."
+  - "churn_rate reflects voluntary cancellations only. Payment failures are tracked separately."
+  - "Data excludes internal test accounts (account_id starting with 'test-')."
