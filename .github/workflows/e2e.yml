@@ -88,7 +88,9 @@ jobs:
       # ── Install Playwright ─────────────────────────────────────────────────
       - name: Install Node dependencies (for Playwright)
         working-directory: apps/web
-        run: npm ci
+        run: |
+          sudo rm -rf node_modules .next
+          npm ci
 
       - name: Install Playwright browser
         working-directory: apps/web
