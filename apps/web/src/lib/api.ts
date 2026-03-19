@@ -90,6 +90,89 @@ export async function uploadDataset(file: File): Promise<Dataset> {
   return res.json();
 }
 
+// ── Question / Q&A types ──────────────────────────────────────────────────────
+
+export interface SemanticMappingItem {
+  phrase: string;
+  resolved_to: string;
+  resolved_name: string;
+  type: string;
+  via: string;
+}
+
+export interface QuestionResponse {
+  id: string;
+  dataset_id: string;
+  question: string;
+  answer: string | null;
+  sql: string | null;
+  columns: string[];
+  rows: (string | number | null)[][];
+  row_count: number;
+  chart_type: string | null;
+  semantic_mappings: SemanticMappingItem[];
+  assumptions: string[];
+  caveats: string[];
+  confidence: string | null;
+  confidence_note: string | null;
+  clarifying_question: string | null;
+  provenance: Record<string, unknown> | null;
+  execution_ms: number | null;
+  error: string | null;
+  created_at: string;
+}
+
+export interface QuestionListResponse {
+  questions: QuestionResponse[];
+  total: number;
+}
+
+export interface FeedbackResponse {
+  id: string;
+  question_id: string;
+  feedback_type: string;
+  note: string | null;
+  created_at: string;
+}
+
+// ── Question API ──────────────────────────────────────────────────────────────
+
+export async function askQuestion(payload: {
+  question: string;
+  dataset_id: string;
+  model_id?: string;
+}): Promise<QuestionResponse> {
+  return apiFetch("/api/questions", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function listQuestions(
+  datasetId?: string,
+  limit = 50
+): Promise<QuestionListResponse> {
+  const params = new URLSearchParams();
+  if (datasetId) params.set("dataset_id", datasetId);
+  params.set("limit", String(limit));
+  return apiFetch(`/api/questions?${params}`);
+}
+
+export async function getQuestion(id: string): Promise<QuestionResponse> {
+  return apiFetch(`/api/questions/${id}`);
+}
+
+export async function submitFeedback(
+  questionId: string,
+  feedbackType: "correct" | "partial" | "wrong",
+  note?: string
+): Promise<FeedbackResponse> {
+  return apiFetch(`/api/questions/${questionId}/feedback`, {
+    method: "POST",
+    body: JSON.stringify({ feedback_type: feedbackType, note }),
+  });
+}
+
 // ── Semantic Model types ───────────────────────────────────────────────────────
 
 export interface MetricDef {
