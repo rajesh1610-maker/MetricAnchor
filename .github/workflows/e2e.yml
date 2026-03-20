@@ -1,8 +1,5 @@
 name: E2E Smoke Tests
 
-# Run on every push to main and on demand.
-# Not run on every PR — Docker compose builds are slow.
-# Open a PR comment to trigger manually if you need E2E verification before merge.
 on:
   push:
     branches: [main]
@@ -21,7 +18,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # Python is needed to generate sample data and run the seed script.
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
@@ -35,7 +31,6 @@ jobs:
           cache-dependency-path: apps/web/package-lock.json
 
       # ── Create a minimal .env for Docker ──────────────────────────────────
-      # Stub mode: no LLM API key required.
       - name: Create .env
         run: |
           cat > .env << 'EOF'
@@ -57,7 +52,7 @@ jobs:
       - name: Start services
         run: docker compose up -d
 
-      # ── Wait for the API to become healthy ────────────────────────────────
+      # ── Wait for the API to become healthy ─────────────────────────────────
       - name: Wait for API health
         run: |
           echo "Waiting for API to become healthy..."
@@ -71,6 +66,26 @@ jobs:
           done
           echo "API did not become healthy within 3 minutes"
           docker compose logs api
+          exit 1
+
+      # ── Wait for the Web UI to become ready ────────────────────────────────
+      - name: Wait for Web UI
+        run: |
+          echo "Waiting for Web UI to serve pages..."
+          for i in $(seq 1 24); do
+            STATUS=$(curl -so /dev/null -w '%{http_code}' http://localhost:3000/ 2>/dev/null || echo "000")
+            if [ "$STATUS" -lt 400 ] 2>/dev/null; then
+              echo "Web UI is ready (HTTP $STATUS) after $((i * 5))s"
+              exit 0
+            fi
+            echo "  attempt $i/24 — HTTP $STATUS — waiting 5s..."
+            sleep 5
+          done
+          echo "Web UI did not become ready within 2 minutes"
+          echo "--- Web container logs ---"
+          docker compose logs web
+          echo "--- Curl response body ---"
+          curl -s http://localhost:3000/ | head -100
           exit 1
 
       # ── Seed demo data ─────────────────────────────────────────────────────
@@ -102,20 +117,16 @@ jobs:
           NODE_PATH: apps/web/node_modules
         run: npx --prefix apps/web playwright test --config tests/e2e/playwright.config.ts
 
-      # ── Collect artifacts on failure ───────────────────────────────────────
+      # ── Collect artifacts and logs on failure ──────────────────────────────
+      - name: Dump Docker logs
+        if: failure()
+        run: docker compose logs
+
       - name: Upload Playwright report
         if: failure()
         uses: actions/upload-artifact@v4
         with:
           name: playwright-report-${{ github.run_id }}
-          path: tests/e2e/report/
-          retention-days: 7
-
-      - name: Upload failure screenshots
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: playwright-screenshots-${{ github.run_id }}
           path: tests/e2e/report/
           retention-days: 7
 
