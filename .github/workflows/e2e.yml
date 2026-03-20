@@ -98,8 +98,9 @@ jobs:
 
       # ── Run smoke tests ────────────────────────────────────────────────────
       - name: Run Playwright smoke tests
-        working-directory: apps/web
-        run: npx playwright test --config ../../tests/e2e/playwright.config.ts
+        env:
+          NODE_PATH: apps/web/node_modules
+        run: npx --prefix apps/web playwright test --config tests/e2e/playwright.config.ts
 
       # ── Collect artifacts on failure ───────────────────────────────────────
       - name: Upload Playwright report
