@@ -52,40 +52,31 @@ jobs:
       - name: Start services
         run: docker compose up -d
 
-      # ── Wait for the API to become healthy ─────────────────────────────────
+      # ── Wait for API + Web to become healthy ───────────────────────────────
       - name: Wait for API health
         run: |
           echo "Waiting for API to become healthy..."
           for i in $(seq 1 36); do
             if curl -sf http://localhost:8000/api/health > /dev/null 2>&1; then
               echo "API is healthy after $((i * 5))s"
-              exit 0
+              break
             fi
             echo "  attempt $i/36 — waiting 5s..."
             sleep 5
           done
-          echo "API did not become healthy within 3 minutes"
-          docker compose logs api
-          exit 1
 
-      # ── Wait for the Web UI to become ready ────────────────────────────────
       - name: Wait for Web UI
         run: |
-          echo "Waiting for Web UI to serve pages..."
-          for i in $(seq 1 24); do
-            STATUS=$(curl -so /dev/null -w '%{http_code}' http://localhost:3000/ 2>/dev/null || echo "000")
-            if [ "$STATUS" -lt 400 ] 2>/dev/null; then
-              echo "Web UI is ready (HTTP $STATUS) after $((i * 5))s"
-              exit 0
-            fi
-            echo "  attempt $i/24 — HTTP $STATUS — waiting 5s..."
+          echo "Waiting for Web UI to compile and serve pages..."
+          for i in $(seq 1 30); do
+            STATUS=$(curl -sf -o /dev/null -w '%{http_code}' http://localhost:3000/ 2>/dev/null) && \
+            [ "$STATUS" -ge 200 ] && [ "$STATUS" -lt 400 ] && \
+            echo "Web UI is ready (HTTP $STATUS) after $((i * 5))s" && exit 0
+            echo "  attempt $i/30 — HTTP ${STATUS:-timeout} — waiting 5s..."
             sleep 5
           done
-          echo "Web UI did not become ready within 2 minutes"
-          echo "--- Web container logs ---"
-          docker compose logs web
-          echo "--- Curl response body ---"
-          curl -s http://localhost:3000/ | head -100
+          echo "Web UI did not become ready"
+          docker compose logs web | tail -60
           exit 1
 
       # ── Seed demo data ─────────────────────────────────────────────────────
@@ -100,22 +91,16 @@ jobs:
           PYTHONPATH: ${{ github.workspace }}
         run: python3 scripts/seed_demo.py
 
-      # ── Install Playwright ─────────────────────────────────────────────────
-      - name: Install Node dependencies (for Playwright)
-        working-directory: apps/web
+      # ── Install Playwright at repo root (NOT inside apps/web) ──────────────
+      - name: Install Playwright
         run: |
-          sudo rm -rf node_modules .next
-          npm ci
-
-      - name: Install Playwright browser
-        working-directory: apps/web
-        run: npx playwright install chromium --with-deps
+          npm init -y > /dev/null 2>&1
+          npm install @playwright/test
+          npx playwright install chromium --with-deps
 
       # ── Run smoke tests ────────────────────────────────────────────────────
       - name: Run Playwright smoke tests
-        env:
-          NODE_PATH: apps/web/node_modules
-        run: npx --prefix apps/web playwright test --config tests/e2e/playwright.config.ts
+        run: npx playwright test --config tests/e2e/playwright.config.ts
 
       # ── Collect artifacts and logs on failure ──────────────────────────────
       - name: Dump Docker logs
